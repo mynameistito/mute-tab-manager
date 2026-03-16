@@ -8,9 +8,23 @@ function applyMuteToAllVideos(muted: boolean): void {
   }
 }
 
-// Watch for dynamically added <video> elements
-const observer = new MutationObserver(() => {
-  applyMuteToAllVideos(isMuted);
+// Watch for dynamically added <video> elements; only fire when a video node
+// is actually added, and only when muted, to avoid unnecessary DOM scans.
+const observer = new MutationObserver((mutations) => {
+  if (!isMuted) {
+    return;
+  }
+  for (const mutation of mutations) {
+    for (const node of Array.from(mutation.addedNodes)) {
+      if (
+        node instanceof HTMLVideoElement ||
+        (node instanceof HTMLElement && node.querySelector("video") !== null)
+      ) {
+        applyMuteToAllVideos(true);
+        return;
+      }
+    }
+  }
 });
 
 observer.observe(document.body, { childList: true, subtree: true });

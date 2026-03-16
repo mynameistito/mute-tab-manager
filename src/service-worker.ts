@@ -106,7 +106,8 @@ async function sendMuteToContentScript(
 // ── Core toggle logic ──────────────────────────────────────────────────────
 
 async function toggleMuteTab(tabId: number): Promise<void> {
-  const currentlyMuted = await isTabMuted(tabId);
+  const tab = await chrome.tabs.get(tabId);
+  const currentlyMuted = tab.mutedInfo?.muted ?? false;
   const newMuted = !currentlyMuted;
 
   await chrome.tabs.update(tabId, { muted: newMuted });
@@ -124,15 +125,23 @@ async function toggleMuteActiveTab(): Promise<void> {
 
 async function muteAllTabs(): Promise<void> {
   const tabs = await chrome.tabs.query({});
+  const validTabs = tabs.filter(
+    (tab): tab is chrome.tabs.Tab & { id: number } => tab.id != null
+  );
+
+  // Write all state in a single storage update to avoid concurrent read-modify-write conflicts
+  const mutedTabs = await getMutedTabs();
+  for (const tab of validTabs) {
+    mutedTabs[tab.id] = true;
+  }
+  await chrome.storage.session.set({ [STORAGE_KEY_MUTED_TABS]: mutedTabs });
+
   await Promise.all(
-    tabs
-      .filter((tab): tab is chrome.tabs.Tab & { id: number } => tab.id != null)
-      .map(async (tab) => {
-        await chrome.tabs.update(tab.id, { muted: true });
-        await sendMuteToContentScript(tab.id, true);
-        await setTabMuted(tab.id, true);
-        await updateBadgeAndIcon(tab.id, true);
-      })
+    validTabs.map(async (tab) => {
+      await chrome.tabs.update(tab.id, { muted: true });
+      await sendMuteToContentScript(tab.id, true);
+      await updateBadgeAndIcon(tab.id, true);
+    })
   );
 }
 

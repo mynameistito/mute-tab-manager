@@ -2,6 +2,14 @@
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "extends": ["ultracite/biome/core"],
   "javascript": {
-    "globals": ["chrome", "Bun"]
-  }
+    "globals": ["chrome"]
+  },
+  "overrides": [
+    {
+      "includes": ["scripts/**"],
+      "javascript": {
+        "globals": ["Bun"]
+      }
+    }
+  ]
 }

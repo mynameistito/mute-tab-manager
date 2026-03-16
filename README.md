@@ -4,7 +4,7 @@ A Chrome extension that properly mutes tabs — including YouTube, which ignores
 
 ## Why This Exists
 
-Chrome's built-in tab mute (`chrome.tabs.update({ muted: true })`) doesn't silence YouTube. YouTube manages audio through its own `HTMLVideoElement` and the Web Audio API, completely bypassing Chrome's tab-level mute. This extension fixes that by directly setting `video.muted` on the page via a content script.
+Chrome's built-in tab mute (`chrome.tabs.update({ muted: true })`) silences a tab's audio output, but it does not update YouTube's player UI or the underlying `HTMLVideoElement.muted` state. This extension supplements the native mute by also directly setting `video.muted` via a content script, keeping YouTube's player in sync and surviving SPA navigations and page reloads.
 
 ## Features
 

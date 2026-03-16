@@ -1,5 +1,4 @@
-import { cpSync, mkdirSync, readdirSync, rmSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { cpSync, mkdirSync, rmSync } from "node:fs";
 
 // 1. Clean and recreate dist
 rmSync("dist", { recursive: true, force: true });
@@ -30,20 +29,5 @@ if (!result.success) {
 console.log(`Built ${result.outputs.length} files to dist/`);
 
 // 3. Copy public/ → dist/
-function copyDir(src: string, dest: string) {
-  const entries = readdirSync(src);
-  for (const entry of entries) {
-    const srcPath = join(src, entry);
-    const destPath = join(dest, entry);
-    const stat = statSync(srcPath);
-    if (stat.isDirectory()) {
-      mkdirSync(destPath, { recursive: true });
-      copyDir(srcPath, destPath);
-    } else {
-      cpSync(srcPath, destPath);
-    }
-  }
-}
-
-copyDir("public", "dist");
+cpSync("public", "dist", { recursive: true });
 console.log("Copied public/ → dist/");
