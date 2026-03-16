@@ -195,11 +195,11 @@ const chromeMock = {
       mockCalls.action.setBadgeBackgroundColor.push(details);
     },
     setIcon: (details: chrome.action.TabIconDetails) => {
+      mockCalls.action.setIcon.push(details);
       if (mockConfig.action.setIconRejectTimes > 0) {
         mockConfig.action.setIconRejectTimes--;
         return Promise.reject(new Error("setIcon failed"));
       }
-      mockCalls.action.setIcon.push(details);
       return Promise.resolve();
     },
   },
