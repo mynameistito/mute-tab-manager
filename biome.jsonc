@@ -10,6 +10,12 @@
       "javascript": {
         "globals": ["Bun"]
       }
+    },
+    {
+      "includes": ["__tests__/**"],
+      "javascript": {
+        "globals": ["Bun", "chrome"]
+      }
     }
   ]
 }
