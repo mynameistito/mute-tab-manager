@@ -177,7 +177,7 @@ const chromeMock = {
     onMessage: mockEvents.runtime.onMessage,
     getContexts: (filter: chrome.runtime.ContextFilter) => {
       mockCalls.runtime.getContexts.push(filter);
-      return mockConfig.runtime.getContextsResult;
+      return Promise.resolve(mockConfig.runtime.getContextsResult);
     },
     sendMessage: (message: unknown) => {
       mockCalls.runtime.sendMessage.push(message);
@@ -195,11 +195,12 @@ const chromeMock = {
       mockCalls.action.setBadgeBackgroundColor.push(details);
     },
     setIcon: (details: chrome.action.TabIconDetails) => {
-      mockCalls.action.setIcon.push(details);
       if (mockConfig.action.setIconRejectTimes > 0) {
         mockConfig.action.setIconRejectTimes--;
-        throw new Error("setIcon failed");
+        return Promise.reject(new Error("setIcon failed"));
       }
+      mockCalls.action.setIcon.push(details);
+      return Promise.resolve();
     },
   },
   commands: {
@@ -230,8 +231,9 @@ const chromeMock = {
     sendMessage: (tabId: number, message: unknown) => {
       mockCalls.tabs.sendMessage.push([tabId, message]);
       if (mockConfig.tabs.sendMessageShouldReject) {
-        throw new Error("sendMessage failed");
+        return Promise.reject(new Error("sendMessage failed"));
       }
+      return Promise.resolve();
     },
   },
   storage: {

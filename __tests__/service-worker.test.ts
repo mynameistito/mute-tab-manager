@@ -211,10 +211,10 @@ describe("updateBadgeAndIcon", () => {
   test("falls back to base icons when setIcon rejects on first call", async () => {
     mockConfig.action.setIconRejectTimes = 1;
     await updateBadgeAndIcon(1, true);
-    // setIcon called twice: first throws, second is fallback
-    expect(mockCalls.action.setIcon.length).toBe(2);
+    // Only the fallback call is tracked (rejected call is not pushed to mockCalls)
+    expect(mockCalls.action.setIcon.length).toBe(1);
     const fallbackCall = mockCalls.action
-      .setIcon[1] as chrome.action.TabIconDetails;
+      .setIcon[0] as chrome.action.TabIconDetails;
     expect((fallbackCall.path as Record<string, string>)["16"]).toBe(
       "icons/icon-16.png"
     );

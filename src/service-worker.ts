@@ -146,12 +146,14 @@ export async function muteAllTabs(): Promise<void> {
     (tab): tab is chrome.tabs.Tab & { id: number } => tab.id != null
   );
 
-  // Write all state in a single storage update to avoid concurrent read-modify-write conflicts
-  const mutedTabs = await getMutedTabs();
-  for (const tab of validTabs) {
-    mutedTabs[tab.id] = true;
-  }
-  await chrome.storage.session.set({ [STORAGE_KEY_MUTED_TABS]: mutedTabs });
+  // Write all state in a single atomic storage update inside the lock
+  await withStorageLock(async () => {
+    const mutedTabs = await getMutedTabs();
+    for (const tab of validTabs) {
+      mutedTabs[tab.id] = true;
+    }
+    await chrome.storage.session.set({ [STORAGE_KEY_MUTED_TABS]: mutedTabs });
+  });
 
   await Promise.all(
     validTabs.map(async (tab) => {
