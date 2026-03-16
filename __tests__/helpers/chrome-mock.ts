@@ -17,7 +17,7 @@ g.HTMLVideoElement = happyWindow.HTMLVideoElement;
 g.EventTarget = happyWindow.EventTarget;
 g.Event = happyWindow.Event;
 
-interface MockEvent<TCallback extends (...args: never[]) => unknown> {
+interface MockEvent<TCallback extends (...args: any[]) => any> {
   _listeners: TCallback[];
   addListener(cb: TCallback): void;
   clearListeners(): void;
@@ -25,7 +25,7 @@ interface MockEvent<TCallback extends (...args: never[]) => unknown> {
 }
 
 function createMockEvent<
-  TCallback extends (...args: never[]) => unknown,
+  TCallback extends (...args: any[]) => any,
 >(): MockEvent<TCallback> {
   const listeners: TCallback[] = [];
   return {
@@ -229,10 +229,11 @@ const chromeMock = {
   storage: {
     session: {
       get: (key: string) => {
-        return { [key]: sessionStore[key] };
+        return Promise.resolve({ [key]: sessionStore[key] });
       },
       set: (items: Record<string, unknown>) => {
         Object.assign(sessionStore, items);
+        return Promise.resolve();
       },
     },
   },
