@@ -1,5 +1,12 @@
 # @mute-tab/firefox
 
+## 0.3.2
+
+### Patch Changes
+
+- 0bbeeaf: Fix Firefox manifest validation errors: add `background.scripts` fallback alongside `service_worker`, and add `data_collection_permissions` to `browser_specific_settings.gecko`.
+  - @mute-tab/shared@0.3.2
+
 ## 0.3.1
 
 ### Patch Changes
