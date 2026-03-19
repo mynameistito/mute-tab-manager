@@ -1,5 +1,13 @@
 # @mute-tab/firefox
 
+## 0.3.1
+
+### Patch Changes
+
+- b014bc8: Fix release workflow to read version from workspace packages, validate version sync across packages, and guard against undefined version producing phantom tags.
+- Updated dependencies [b014bc8]
+  - @mute-tab/shared@0.3.1
+
 ## 0.3.0
 
 ### Minor Changes

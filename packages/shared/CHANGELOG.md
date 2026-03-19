@@ -1,5 +1,11 @@
 # @mute-tab/shared
 
+## 0.3.1
+
+### Patch Changes
+
+- b014bc8: Fix release workflow to read version from workspace packages, validate version sync across packages, and guard against undefined version producing phantom tags.
+
 ## 0.3.0
 
 ### Minor Changes
