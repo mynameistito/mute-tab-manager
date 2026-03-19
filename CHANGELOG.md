@@ -1,4 +1,4 @@
-# chrome-mute-tab
+# mute-tab
 
 ## 0.2.1
 

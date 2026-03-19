@@ -8,11 +8,9 @@ import {
   CONTEXT_MENU_TOGGLE_ID,
   ICON_BASE,
   ICON_SIZES,
-  OFFSCREEN_URL,
   STORAGE_KEY_DARK_MODE,
   STORAGE_KEY_MUTED_TABS,
-} from "./shared/constants.ts";
-import type { InboundServiceWorkerMessage } from "./types/messages.ts";
+} from "@mute-tab/shared/constants";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -164,24 +162,27 @@ export async function muteAllTabs(): Promise<void> {
   );
 }
 
-// ── Offscreen document ─────────────────────────────────────────────────────
+// ── Dark mode detection ────────────────────────────────────────────────────
 
-export async function ensureOffscreenDocument(): Promise<void> {
-  const existingContexts = await chrome.runtime.getContexts({
-    contextTypes: [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT],
+// Firefox 128+ supports matchMedia in MV3 service workers natively.
+export function initDarkModeDetection(): void {
+  const mq = matchMedia("(prefers-color-scheme: dark)");
+  chrome.storage.session.set({ [STORAGE_KEY_DARK_MODE]: mq.matches });
+  mq.addEventListener("change", (e) => {
+    chrome.storage.session.set({ [STORAGE_KEY_DARK_MODE]: e.matches });
   });
-  if (existingContexts.length === 0) {
-    await chrome.offscreen.createDocument({
-      url: OFFSCREEN_URL,
-      reasons: [chrome.offscreen.Reason.MATCH_MEDIA],
-      justification: "Detect system dark mode preference",
-    });
-  }
 }
 
 // ── Event listeners ────────────────────────────────────────────────────────
 
-chrome.runtime.onInstalled.addListener(async () => {
+// Re-initialize on every service-worker startup so theme state is correct
+// after browser restarts (session storage is cleared on restart).
+// Guard against environments (e.g. tests) where matchMedia is not defined.
+if (typeof matchMedia !== "undefined") {
+  initDarkModeDetection();
+}
+
+chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: CONTEXT_MENU_TOGGLE_ID,
     title: "Toggle Mute",
@@ -192,7 +193,7 @@ chrome.runtime.onInstalled.addListener(async () => {
     title: "Mute All Tabs",
     contexts: ["action"],
   });
-  await ensureOffscreenDocument();
+  initDarkModeDetection();
 });
 
 chrome.action.onClicked.addListener(async () => {
@@ -224,29 +225,16 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
     return;
   }
 
-  // Re-inject mute state after page load (handles YouTube reloads)
-  if (changeInfo.status === "complete") {
+  const shouldReinject =
+    changeInfo.status === "complete" || changeInfo.url != null;
+  if (shouldReinject) {
     await sendMuteToContentScript(tabId, true);
-    await updateBadgeAndIcon(tabId, true);
   }
-
-  // Re-inject mute state after SPA navigation (handles YouTube pushState)
-  if (changeInfo.url != null) {
-    await sendMuteToContentScript(tabId, true);
+  if (changeInfo.status === "complete") {
+    await updateBadgeAndIcon(tabId, true);
   }
 });
 
 chrome.tabs.onRemoved.addListener(async (tabId) => {
   await removeTabFromStorage(tabId);
 });
-
-// Handle messages from offscreen document
-chrome.runtime.onMessage.addListener(
-  async (message: InboundServiceWorkerMessage) => {
-    if (message.type === "DARK_MODE_RESPONSE") {
-      await chrome.storage.session.set({
-        [STORAGE_KEY_DARK_MODE]: message.isDark,
-      });
-    }
-  }
-);

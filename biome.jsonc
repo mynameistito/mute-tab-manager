@@ -6,13 +6,13 @@
   },
   "overrides": [
     {
-      "includes": ["scripts/**"],
+      "includes": ["scripts/**", "apps/*/scripts/**"],
       "javascript": {
         "globals": ["Bun"]
       }
     },
     {
-      "includes": ["__tests__/**"],
+      "includes": ["apps/*/__tests__/**", "packages/*/__tests__/**"],
       "javascript": {
         "globals": ["Bun", "chrome"]
       }

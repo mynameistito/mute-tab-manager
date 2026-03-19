@@ -11,6 +11,12 @@ if (existing.exitCode === 0) {
 }
 
 await $`bun run build`;
-await $`rm -f chrome-mute-tab.zip`;
-await $`cd dist && zip -r ../chrome-mute-tab.zip . && cd ..`;
-await $`gh release create ${tag} chrome-mute-tab.zip --title ${tag} --generate-notes`;
+
+const chromeZip = `mute-tab-chrome-v${version}.zip`;
+const firefoxZip = `mute-tab-firefox-v${version}.zip`;
+
+await $`rm -f ${chromeZip} ${firefoxZip}`;
+await $`cd apps/chrome/dist && zip -r ../../../${chromeZip} . && cd ../../..`;
+await $`cd apps/firefox/dist && zip -r ../../../${firefoxZip} . && cd ../../..`;
+
+await $`gh release create ${tag} ${chromeZip} ${firefoxZip} --title ${tag} --generate-notes`;

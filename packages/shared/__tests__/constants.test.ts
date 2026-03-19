@@ -5,10 +5,9 @@ import {
   COMMAND_TOGGLE_MUTE,
   CONTEXT_MENU_MUTE_ALL,
   CONTEXT_MENU_TOGGLE_ID,
-  OFFSCREEN_URL,
   STORAGE_KEY_DARK_MODE,
   STORAGE_KEY_MUTED_TABS,
-} from "../src/shared/constants.ts";
+} from "../src/constants.ts";
 
 describe("constants", () => {
   test("STORAGE_KEY_MUTED_TABS", () =>
@@ -23,5 +22,4 @@ describe("constants", () => {
     expect(CONTEXT_MENU_MUTE_ALL).toBe("mute-all-tabs"));
   test("BADGE_MUTED", () => expect(BADGE_MUTED).toBe("M"));
   test("BADGE_UNMUTED", () => expect(BADGE_UNMUTED).toBe(""));
-  test("OFFSCREEN_URL", () => expect(OFFSCREEN_URL).toBe("offscreen.html"));
 });

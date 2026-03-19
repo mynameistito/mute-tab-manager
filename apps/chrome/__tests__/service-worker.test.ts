@@ -1,4 +1,18 @@
 import { beforeEach, describe, expect, test } from "bun:test";
+import {
+  BADGE_COLOR_MUTED,
+  BADGE_COLOR_UNMUTED,
+  BADGE_MUTED,
+  BADGE_UNMUTED,
+  CONTEXT_MENU_MUTE_ALL,
+  CONTEXT_MENU_TOGGLE_ID,
+} from "@mute-tab/shared/constants";
+import {
+  mockCalls,
+  mockConfig,
+  mockEvents,
+  resetChromeMock,
+} from "../../../packages/shared/__tests__/helpers/chrome-mock.ts";
 // Import all exported functions
 import {
   ensureOffscreenDocument,
@@ -13,20 +27,6 @@ import {
   toggleMuteTab,
   updateBadgeAndIcon,
 } from "../src/service-worker.ts";
-import {
-  BADGE_COLOR_MUTED,
-  BADGE_COLOR_UNMUTED,
-  BADGE_MUTED,
-  BADGE_UNMUTED,
-  CONTEXT_MENU_MUTE_ALL,
-  CONTEXT_MENU_TOGGLE_ID,
-} from "../src/shared/constants.ts";
-import {
-  mockCalls,
-  mockConfig,
-  mockEvents,
-  resetChromeMock,
-} from "./helpers/chrome-mock.ts";
 
 // Listeners are registered at module import time (top-level imports above).
 

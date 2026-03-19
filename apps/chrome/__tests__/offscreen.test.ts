@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { mockCalls, resetChromeMock } from "./helpers/chrome-mock.ts";
+import {
+  mockCalls,
+  resetChromeMock,
+} from "../../../packages/shared/__tests__/helpers/chrome-mock.ts";
 
 // Monotonic counter ensures each import() gets a unique URL regardless of clock resolution
 let importCounter = 0;

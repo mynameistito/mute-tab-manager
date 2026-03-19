@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["chrome", "bun"],
+    "paths": {
+      "@mute-tab/shared/constants": ["../../packages/shared/src/constants.ts"],
+      "@mute-tab/shared/types/messages": [
+        "../../packages/shared/src/types/messages.ts"
+      ],
+      "@mute-tab/shared/content-youtube": [
+        "../../packages/shared/src/content-youtube.ts"
+      ]
+    }
+  },
+  "include": ["src/**/*", "scripts/**/*", "__tests__/**/*"]
+}

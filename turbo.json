@@ -1,0 +1,34 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "inputs": ["src/**", "public/**", "scripts/build.ts", "tsconfig.json"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "__tests__/**", "tsconfig.json", "../../tsconfig.base.json"]
+    },
+    "check": {
+      "inputs": ["src/**", "__tests__/**", "scripts/**"]
+    },
+    "fix": {
+      "inputs": ["src/**", "__tests__/**", "scripts/**"],
+      "cache": false
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "__tests__/**", "bunfig.toml"]
+    },
+    "test:coverage": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "inputs": ["src/**", "__tests__/**", "bunfig.toml"]
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}
