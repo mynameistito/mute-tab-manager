@@ -9,12 +9,7 @@
     },
     "typecheck": {
       "dependsOn": ["^build"],
-      "inputs": [
-        "src/**",
-        "__tests__/**",
-        "tsconfig.json",
-        "../../tsconfig.base.json"
-      ]
+      "inputs": ["src/**", "__tests__/**", "tsconfig.json", "../../tsconfig.base.json"]
     },
     "check": {
       "inputs": ["src/**", "__tests__/**", "scripts/**"]

@@ -1,19 +1,7 @@
 import { $ } from "bun";
-import chromePkg from "../apps/chrome/package.json";
-import firefoxPkg from "../apps/firefox/package.json";
-import sharedPkg from "../packages/shared/package.json";
+import pkg from "../package.json";
 
-const versions = [chromePkg.version, firefoxPkg.version, sharedPkg.version];
-if (new Set(versions).size !== 1) {
-  throw new Error(`Package versions are out of sync: ${versions.join(", ")}`);
-}
-
-const version = versions[0];
-if (!version) {
-  throw new Error(
-    "Version is undefined — package.json may be missing a version field."
-  );
-}
+const version = pkg.version;
 const tag = `v${version}`;
 
 const existing = await $`gh release view ${tag}`.nothrow();

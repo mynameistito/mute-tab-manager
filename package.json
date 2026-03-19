@@ -1,13 +1,10 @@
 {
   "name": "mute-tab",
-  "version": "0.3.0",
+  "version": "0.2.1",
   "type": "module",
   "private": true,
   "packageManager": "bun@1.3.11",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "build": "turbo run build",
     "check": "turbo run check",
