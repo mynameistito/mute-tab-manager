@@ -46,6 +46,7 @@
       "version": "0.2.1",
       "devDependencies": {
         "@types/bun": "*",
+        "@types/chrome": "*",
         "happy-dom": "*",
         "ultracite": "*",
       },
