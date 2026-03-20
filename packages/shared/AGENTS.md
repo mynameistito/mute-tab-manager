@@ -16,15 +16,15 @@
 
 | Symbol | Location | Role |
 |--------|----------|------|
-| `STORAGE_KEY_MUTED_TABS` | `constants.ts:1` | Storage key for muted tabs map |
-| `STORAGE_KEY_DARK_MODE` | `constants.ts:2` | Storage key for dark mode flag |
-| `SetMutedMessage` | `types/messages.ts:1` | Content script message type |
-| `DarkModeResponseMessage` | `types/messages.ts:5` | Service worker message type |
-| `applyMuteToAllVideos` | `content-youtube.ts:5` | Mute/unmute all video elements |
-|`mockCalls` | `chrome-mock.ts:100` | Track Chrome API calls in tests |
-| `mockConfig` | `chrome-mock.ts:82` | Configure mock behavior in tests |
-| `mockEvents` | `chrome-mock.ts:126` |Fire/simulate Chrome events in tests |
-| `resetChromeMock` | `chrome-mock.ts:58` | Reset mock state between tests |
+| `STORAGE_KEY_MUTED_TABS` | `src/constants.ts:1` | Storage key for muted tabs map |
+| `STORAGE_KEY_DARK_MODE` | `src/constants.ts:2` | Storage key for dark mode flag |
+| `SetMutedMessage` | `src/types/messages.ts:1` | Content script message type |
+| `DarkModeResponseMessage` | `src/types/messages.ts:5` | Service worker message type |
+| `applyMuteToAllVideos` | `src/content-youtube.ts:5` | Mute/unmute all video elements |
+| `mockCalls` | `__tests__/helpers/chrome-mock.ts:100` | Track Chrome API calls in tests |
+| `mockConfig` | `__tests__/helpers/chrome-mock.ts:82` | Configure mock behavior in tests |
+| `mockEvents` | `__tests__/helpers/chrome-mock.ts:126` | Fire/simulate Chrome events in tests |
+| `resetChromeMock` | `__tests__/helpers/chrome-mock.ts:58` | Reset mock state between tests |
 
 ## CONVENTIONS
 

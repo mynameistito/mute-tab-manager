@@ -11,7 +11,7 @@ Browser extension monorepo for managing muted tabs. Supports both Chrome and Fir
 ```
 mute-tab-manager/
 ├── apps/
-│   ├── chrome/     # Chrome MV3 extension (offscreen document fordark mode)
+│   ├── chrome/     # Chrome MV3 extension (offscreen document for dark mode)
 │   └── firefox/    # Firefox MV3 extension (native matchMedia support)
 ├── packages/
 │   └── shared/      # Types, constants, content script (no build step)
@@ -45,7 +45,7 @@ mute-tab-manager/
 ## CONVENTIONS
 
 ### TypeScript
-- `noUncheckedIndexedAccess: true` — arrayaccess requires bounds check
+- `noUncheckedIndexedAccess: true` — array access requires bounds check
 - `verbatimModuleSyntax: true` — preserves import/export syntax
 - Type checker: `tsgo` (native TypeScript preview)
 
