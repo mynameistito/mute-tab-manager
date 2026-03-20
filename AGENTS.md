@@ -1,3 +1,99 @@
+# MUTE TAB MANAGER - Project Knowledge Base
+
+**Stack:** TypeScript · Bun · Turborepo · Manifest V3 (Chrome & Firefox)
+
+## OVERVIEW
+
+Browser extension monorepo for managing muted tabs. Supports both Chrome and Firefox via Manifest V3. Uses Bun's native bundler, Turborepo for orchestration, and Ultracite/Biome for code quality.
+
+## STRUCTURE
+
+```
+mute-tab-manager/
+├── apps/
+│   ├── chrome/     # Chrome MV3 extension (offscreen document for dark mode)
+│   └── firefox/    # Firefox MV3 extension (native matchMedia support)
+├── packages/
+│   └── shared/      # Types, constants, content script (no build step)
+└── scripts/        # Build utilities, release automation
+```
+
+**Key insight:** `packages/shared` has no build output—apps import TypeScript directly via relative paths.
+
+## WHERE TO LOOK
+
+| Task | Location |
+|------|----------|
+| Mute/unmute logic | `apps/chrome/src/service-worker.ts`, `apps/firefox/src/service-worker.ts` |
+| Content script (YouTube) | `packages/shared/src/content-youtube.ts` |
+| Chrome/Firefox differences | `apps/chrome/src/offscreen.ts` vs `apps/firefox/src/service-worker.ts` |
+| Type definitions | `packages/shared/src/types/messages.ts` |
+| Constants | `packages/shared/src/constants.ts` |
+| Build scripts | `apps/chrome/scripts/build.ts`, `apps/firefox/scripts/build.ts` |
+| Chrome API mock (tests) | `packages/shared/__tests__/helpers/chrome-mock.ts` |
+
+## CODE MAP
+
+| Symbol | Location | Role |
+|--------|----------|------|
+| `withStorageLock` | `service-worker.ts:23` | Mutex for concurrent storage ops |
+| `ensureOffscreenDocument` | `chrome/service-worker.ts` | Chrome-only dark mode helper |
+| `initDarkModeDetection` | `firefox/service-worker.ts` | Firefox native matchMedia |
+| `STORAGE_KEY_MUTED_TABS` | `constants.ts` | Storage key for muted tabs map |
+| `SetMutedMessage` | `types/messages.ts` | Type-def for content script messaging |
+
+## CONVENTIONS
+
+### TypeScript
+- `noUncheckedIndexedAccess: true` — array access requires bounds check
+- `verbatimModuleSyntax: true` — preserves import/export syntax
+- Type checker: `tsgo` (native TypeScript preview)
+
+### Build
+- Bundle target: `browser`, format: `esm`, minify: `true`
+- No bundler config files—`Bun.build()` called directly in scripts
+- Turbo pipeline: `build → typecheck → test` (sequential dependencies)
+
+### Extension Manifest
+- Chrome: `background.service_worker`
+- Firefox: `background.scripts` array
+- Firefox requires `browser_specific_settings.gecko.id`
+- Firefox min version: `140.0` (for full MV3 support)
+
+### Storage
+- Uses `chrome.storage.session` (cleared on browser close)
+- Storage lock pattern prevents race conditions
+
+## ANTI-PATTERNS
+
+| Don't | Do Instead |
+|-------|------------|
+| Use `browser.*` API | Use `chrome.*` (works in both) |
+| Use `chrome.storage.local` for session state | Use `chrome.storage.session` |
+| Forget null checks on `tab.id` | Use type guards: `tab.id != null` |
+| Use barrel files (index re-exports) | Import via subpath exports |
+| Run async ops without storage lock | Use `withStorageLock(fn)` |
+
+## COMMANDS
+
+```bash
+bun run build          # Build all apps
+bun run typecheck      # Type check all packages
+bun run test           # Run tests
+bun run test:coverage  # Run tests with coverage
+bun run check          # Lint/format check
+bun run fix            # Auto-fix lint/format issues
+```
+
+## NOTES
+
+- **Version sync:** All 3 packages version-locked via changesets
+- **Console.log:** Allowed in `scripts/` (build tools), forbidden in app code
+- **Chrome mock:** Preloaded via `bunfig.toml` for all tests
+- **Offscreen:** Chrome-only; Firefox has native service worker `matchMedia`
+
+---
+
 # Ultracite Code Standards
 
 This project uses **Ultracite**, a zero-config preset that enforces strict code quality standards through automated formatting and linting.
@@ -39,10 +135,6 @@ Write code that is **accessible, performant, type-safe, and maintainable**. Focu
 - Use `async/await` syntax instead of promise chains for better readability
 - Handle errors appropriately in async code with try-catch blocks
 - Don't use async functions as Promise executors
-
-### React & JSX
-
-React-specific guidelines (template only) — not applicable to this project.
 
 ### Error Handling & Debugging
 

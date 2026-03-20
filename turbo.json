@@ -25,7 +25,8 @@
     },
     "test": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**", "__tests__/**", "bunfig.toml"]
+      "inputs": ["src/**", "__tests__/**", "bunfig.toml"],
+      "cache": false
     },
     "test:coverage": {
       "dependsOn": ["^build"],
