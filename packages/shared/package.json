@@ -1,5 +1,5 @@
 {
-  "name": "@mute-tab/shared",
+  "name": "@mute-tab-manager/shared",
   "version": "0.3.3",
   "private": true,
   "type": "module",

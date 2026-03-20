@@ -10,7 +10,7 @@ import {
   ICON_SIZES,
   STORAGE_KEY_DARK_MODE,
   STORAGE_KEY_MUTED_TABS,
-} from "@mute-tab/shared/constants";
+} from "@mute-tab-manager/shared/constants";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

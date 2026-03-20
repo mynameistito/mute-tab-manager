@@ -1,18 +1,18 @@
-# @mute-tab/firefox
+# @mute-tab-manager/firefox
 
 ## 0.3.3
 
 ### Patch Changes
 
 - d7ec418: Fix Firefox manifest warnings: remove unsupported `service_worker` key (use `scripts` only), bump `strict_min_version` to 140.0 to match when `data_collection_permissions` was introduced on desktop Firefox.
-  - @mute-tab/shared@0.3.3
+  - @mute-tab-manager/shared@0.3.3
 
 ## 0.3.2
 
 ### Patch Changes
 
 - 0bbeeaf: Fix Firefox manifest validation errors: add `background.scripts` fallback alongside `service_worker`, and add `data_collection_permissions` to `browser_specific_settings.gecko`.
-  - @mute-tab/shared@0.3.2
+  - @mute-tab-manager/shared@0.3.2
 
 ## 0.3.1
 
@@ -20,7 +20,7 @@
 
 - b014bc8: Fix release workflow to read version from workspace packages, validate version sync across packages, and guard against undefined version producing phantom tags.
 - Updated dependencies [b014bc8]
-  - @mute-tab/shared@0.3.1
+  - @mute-tab-manager/shared@0.3.1
 
 ## 0.3.0
 
@@ -40,4 +40,4 @@
 ### Patch Changes
 
 - Updated dependencies [1140ee1]
-  - @mute-tab/shared@0.3.0
+  - @mute-tab-manager/shared@0.3.0

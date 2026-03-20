@@ -1,5 +1,5 @@
 {
-  "name": "@mute-tab/chrome",
+  "name": "@mute-tab-manager/chrome",
   "version": "0.3.3",
   "private": true,
   "type": "module",
@@ -15,7 +15,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@mute-tab/shared": "workspace:*"
+    "@mute-tab-manager/shared": "workspace:*"
   },
   "devDependencies": {
     "@types/bun": "*",

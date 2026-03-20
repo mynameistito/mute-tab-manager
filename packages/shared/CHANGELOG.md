@@ -1,4 +1,4 @@
-# @mute-tab/shared
+# @mute-tab-manager/shared
 
 ## 0.3.3
 

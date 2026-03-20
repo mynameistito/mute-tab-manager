@@ -26,8 +26,8 @@ if (existing.exitCode === 0) {
 
 await $`bun run build`;
 
-const chromeZip = `mute-tab-chrome-v${version}.zip`;
-const firefoxZip = `mute-tab-firefox-v${version}.zip`;
+const chromeZip = `mute-tab-manager-chrome-v${version}.zip`;
+const firefoxZip = `mute-tab-manager-firefox-v${version}.zip`;
 
 await $`rm -f ${chromeZip} ${firefoxZip}`;
 await $`cd apps/chrome/dist && zip -r ../../../${chromeZip} .`;

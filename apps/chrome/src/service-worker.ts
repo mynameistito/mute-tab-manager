@@ -10,8 +10,8 @@ import {
   ICON_SIZES,
   STORAGE_KEY_DARK_MODE,
   STORAGE_KEY_MUTED_TABS,
-} from "@mute-tab/shared/constants";
-import type { InboundServiceWorkerMessage } from "@mute-tab/shared/types/messages";
+} from "@mute-tab-manager/shared/constants";
+import type { InboundServiceWorkerMessage } from "@mute-tab-manager/shared/types/messages";
 
 const OFFSCREEN_URL = "offscreen.html" as const;
 

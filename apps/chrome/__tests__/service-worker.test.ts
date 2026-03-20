@@ -6,7 +6,7 @@ import {
   BADGE_UNMUTED,
   CONTEXT_MENU_MUTE_ALL,
   CONTEXT_MENU_TOGGLE_ID,
-} from "@mute-tab/shared/constants";
+} from "@mute-tab-manager/shared/constants";
 import {
   mockCalls,
   mockConfig,

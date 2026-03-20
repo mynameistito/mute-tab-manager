@@ -3,11 +3,13 @@
   "compilerOptions": {
     "types": ["chrome", "bun"],
     "paths": {
-      "@mute-tab/shared/constants": ["../../packages/shared/src/constants.ts"],
-      "@mute-tab/shared/types/messages": [
+      "@mute-tab-manager/shared/constants": [
+        "../../packages/shared/src/constants.ts"
+      ],
+      "@mute-tab-manager/shared/types/messages": [
         "../../packages/shared/src/types/messages.ts"
       ],
-      "@mute-tab/shared/content-youtube": [
+      "@mute-tab-manager/shared/content-youtube": [
         "../../packages/shared/src/content-youtube.ts"
       ]
     }

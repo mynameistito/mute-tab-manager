@@ -1,4 +1,4 @@
-# Mute Tab
+# Mute Tab Manager
 
 > Silence any tab instantly — with real YouTube support.
 
@@ -85,18 +85,18 @@ cd apps/firefox && bun run build:watch  # rebuild Firefox extension on file chan
 ### Monorepo Structure
 
 ```text
-chrome-mute-tab/
+mute-tab-manager/
 ├── apps/
-│   ├── chrome/          # Chrome MV3 extension (@mute-tab/chrome)
+│   ├── chrome/          # Chrome MV3 extension (@mute-tab-manager/chrome)
 │   │   ├── src/         # service-worker.ts, offscreen.ts
 │   │   ├── public/      # manifest.json, offscreen.html, icons/
 │   │   └── __tests__/
-│   └── firefox/         # Firefox MV3 extension (@mute-tab/firefox)
+│   └── firefox/         # Firefox MV3 extension (@mute-tab-manager/firefox)
 │       ├── src/         # service-worker.ts (matchMedia-based dark mode)
 │       ├── public/      # manifest.json, icons/
 │       └── __tests__/
 ├── packages/
-│   └── shared/          # Shared code (@mute-tab/shared)
+│   └── shared/          # Shared code (@mute-tab-manager/shared)
 │       └── src/         # constants.ts, types/messages.ts, content-youtube.ts
 └── scripts/
     └── release.ts       # Builds and publishes both zips to a GitHub release

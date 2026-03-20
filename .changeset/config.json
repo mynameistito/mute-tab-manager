@@ -2,7 +2,13 @@
   "$schema": "https://unpkg.com/@changesets/config@3.1.3/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "fixed": [["@mute-tab/chrome", "@mute-tab/firefox", "@mute-tab/shared"]],
+  "fixed": [
+    [
+      "@mute-tab-manager/chrome",
+      "@mute-tab-manager/firefox",
+      "@mute-tab-manager/shared"
+    ]
+  ],
   "linked": [],
   "access": "restricted",
   "baseBranch": "main",

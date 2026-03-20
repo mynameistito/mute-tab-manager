@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Mute Tab",
+  "name": "Mute Tab Manager",
   "version": "1.0.0",
   "description": "Mute/unmute tabs with proper YouTube support.",
   "permissions": ["activeTab", "tabs", "contextMenus", "offscreen", "storage"],
