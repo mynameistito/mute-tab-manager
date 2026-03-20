@@ -1,4 +1,4 @@
-# SHARED PACKAGE -Types, Constants, Content Script
+# SHARED PACKAGE - Types, Constants, Content Script
 
 **No build step** — TypeScript imported directly via relative paths from chrome/firefox apps.
 

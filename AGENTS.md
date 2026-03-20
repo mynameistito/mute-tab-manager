@@ -39,7 +39,7 @@ mute-tab-manager/
 | `withStorageLock` | `service-worker.ts:23` | Mutex for concurrent storage ops |
 | `ensureOffscreenDocument` | `chrome/service-worker.ts` | Chrome-only dark mode helper |
 | `initDarkModeDetection` | `firefox/service-worker.ts` | Firefox native matchMedia |
-| `MUTED_TABS_KEY` | `constants.ts` | Storage key for muted tabs map |
+| `STORAGE_KEY_MUTED_TABS` | `constants.ts` | Storage key for muted tabs map |
 | `SetMutedMessage` | `types/messages.ts` | Type-def for content script messaging |
 
 ## CONVENTIONS
