@@ -83,9 +83,19 @@ class TestMutationObserver {
           observer
         );
       });
-      // Patch newly added element nodes so their children are also observed
+      // Patch newly added element nodes and their entire subtree so appends
+      // at any depth are observed.
       if (child.nodeType === 1) {
         this._patchAppendChild(child);
+        const walkNew = (n: Node) => {
+          for (const c of Array.from(n.childNodes)) {
+            if (c.nodeType === 1) {
+              this._patchAppendChild(c);
+              walkNew(c);
+            }
+          }
+        };
+        walkNew(child);
       }
       return result;
     };
