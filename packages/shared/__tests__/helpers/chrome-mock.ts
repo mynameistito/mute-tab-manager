@@ -19,17 +19,66 @@ const happyWindow = new HappyWindow({ url: "https://localhost/" });
 const g = globalThis as Record<string, unknown>;
 g.window = happyWindow;
 g.document = happyWindow.document;
-g.MutationObserver = happyWindow.MutationObserver;
 g.HTMLElement = happyWindow.HTMLElement;
 g.HTMLVideoElement = happyWindow.HTMLVideoElement;
 g.EventTarget = happyWindow.EventTarget;
 g.Event = happyWindow.Event;
+
+// Custom MutationObserver mock — happy-dom's implementation doesn't reliably
+// fire callbacks on Linux CI. This patches appendChild on the observed target
+// so the callback fires via queueMicrotask, matching real browser behaviour.
+class TestMutationObserver {
+  private readonly _callback: MutationCallback;
+
+  constructor(callback: MutationCallback) {
+    this._callback = callback;
+  }
+
+  observe(target: Node) {
+    const callback = this._callback;
+    const observer = this as unknown as MutationObserver;
+    const origAppendChild = target.appendChild.bind(target);
+
+    target.appendChild = <T extends Node>(child: T): T => {
+      const result = origAppendChild(child);
+      queueMicrotask(() => {
+        callback(
+          [
+            {
+              type: "childList",
+              addedNodes: [child] as unknown as NodeList,
+              removedNodes: [] as unknown as NodeList,
+              target,
+              attributeName: null,
+              attributeNamespace: null,
+              nextSibling: null,
+              previousSibling: null,
+              oldValue: null,
+            } as unknown as MutationRecord,
+          ],
+          observer
+        );
+      });
+      return result;
+    };
+  }
+
+  disconnect() {
+    // intentional no-op for mock
+  }
+  takeRecords() {
+    return [];
+  }
+}
+
+g.MutationObserver = TestMutationObserver;
 
 interface MockEvent<TCallback extends (...args: any[]) => any> {
   _listeners: TCallback[];
   addListener(cb: TCallback): void;
   clearListeners(): void;
   fire(...args: Parameters<TCallback>): Promise<void>;
+  removeListener(cb: TCallback): void;
 }
 
 function createMockEvent<
@@ -41,6 +90,12 @@ function createMockEvent<
     addListener(cb: TCallback) {
       listeners.push(cb);
     },
+    removeListener(cb: TCallback) {
+      const idx = listeners.indexOf(cb);
+      if (idx >= 0) {
+        listeners.splice(idx, 1);
+      }
+    },
     async fire(...args: Parameters<TCallback>) {
       for (const cb of listeners) {
         await (cb as unknown as (...a: unknown[]) => unknown)(...args);
@@ -50,6 +105,51 @@ function createMockEvent<
       listeners.length = 0;
     },
   };
+}
+
+/**
+ * Snapshot the current listeners on all mock events.
+ * Use with `listenerDelta` to isolate listeners registered by a single module.
+ */
+export function snapshotListeners(): Map<MockEvent<any>, any[]> {
+  const snap = new Map<MockEvent<any>, any[]>();
+  for (const group of Object.values(mockEvents)) {
+    for (const event of Object.values(group) as MockEvent<any>[]) {
+      snap.set(event, [...event._listeners]);
+    }
+  }
+  return snap;
+}
+
+/**
+ * Compute the listeners added between two snapshots (after − before).
+ */
+export function listenerDelta(
+  before: Map<MockEvent<any>, any[]>,
+  after: Map<MockEvent<any>, any[]>
+): Map<MockEvent<any>, any[]> {
+  const delta = new Map<MockEvent<any>, any[]>();
+  for (const [event, afterListeners] of after) {
+    const beforeCount = before.get(event)?.length ?? 0;
+    delta.set(event, afterListeners.slice(beforeCount));
+  }
+  return delta;
+}
+
+/**
+ * Clear all listeners then restore only those in the given snapshot/delta.
+ */
+export function restoreListeners(snap: Map<MockEvent<any>, any[]>): void {
+  // Clear all events first
+  for (const group of Object.values(mockEvents)) {
+    for (const event of Object.values(group) as MockEvent<any>[]) {
+      event._listeners.length = 0;
+    }
+  }
+  // Restore only the provided listeners
+  for (const [event, listeners] of snap) {
+    event._listeners.push(...listeners);
+  }
 }
 
 // In-memory session storage

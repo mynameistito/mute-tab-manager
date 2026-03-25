@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from "bun:test";
+import { beforeAll, beforeEach, describe, expect, test } from "bun:test";
 import {
   BADGE_COLOR_MUTED,
   BADGE_COLOR_UNMUTED,
@@ -8,55 +8,55 @@ import {
   CONTEXT_MENU_TOGGLE_ID,
 } from "@mute-tab-manager/shared/constants";
 import {
+  listenerDelta,
   mockCalls,
   mockConfig,
   mockEvents,
   resetChromeMock,
+  restoreListeners,
+  snapshotListeners,
 } from "../../../packages/shared/__tests__/helpers/chrome-mock.ts";
-// Import all exported functions
-import {
-  ensureOffscreenDocument,
-  getIsDarkMode,
-  getMutedTabs,
-  isTabMuted,
-  muteAllTabs,
-  removeTabFromStorage,
-  sendMuteToContentScript,
-  setTabMuted,
-  toggleMuteActiveTab,
-  toggleMuteTab,
-  updateBadgeAndIcon,
-} from "../src/service-worker.ts";
 
-// Listeners are registered at module import time (top-level imports above).
+// Use dynamic import so we can snapshot listeners before/after to isolate
+// only this module's listeners (avoids cross-package pollution with bun test).
+type ServiceWorker = typeof import("../src/service-worker.ts");
+let mod: ServiceWorker;
+let myListeners: ReturnType<typeof snapshotListeners>;
+
+beforeAll(async () => {
+  const before = snapshotListeners();
+  mod = await import("../src/service-worker.ts");
+  myListeners = listenerDelta(before, snapshotListeners());
+});
 
 beforeEach(() => {
   resetChromeMock();
+  restoreListeners(myListeners);
 });
 
 // ── getMutedTabs ─────────────────────────────────────────────────────────────
 
 describe("getMutedTabs", () => {
   test("returns {} when storage is empty", async () => {
-    const result = await getMutedTabs();
+    const result = await mod.getMutedTabs();
     expect(result).toEqual({});
   });
 
   test("returns stored data", async () => {
     await chrome.storage.session.set({ mutedTabs: { 1: true, 2: false } });
-    const result = await getMutedTabs();
+    const result = await mod.getMutedTabs();
     expect(result).toEqual({ 1: true, 2: false });
   });
 
   test("returns {} when stored value is null", async () => {
     await chrome.storage.session.set({ mutedTabs: null });
-    const result = await getMutedTabs();
+    const result = await mod.getMutedTabs();
     expect(result).toEqual({});
   });
 
   test("returns {} when stored value is a non-object primitive", async () => {
     await chrome.storage.session.set({ mutedTabs: 42 });
-    const result = await getMutedTabs();
+    const result = await mod.getMutedTabs();
     expect(result).toEqual({});
   });
 });
@@ -65,29 +65,29 @@ describe("getMutedTabs", () => {
 
 describe("setTabMuted", () => {
   test("writes true for a tab", async () => {
-    await setTabMuted(5, true);
-    const result = await getMutedTabs();
+    await mod.setTabMuted(5, true);
+    const result = await mod.getMutedTabs();
     expect(result[5]).toBe(true);
   });
 
   test("writes false for a tab", async () => {
-    await setTabMuted(5, false);
-    const result = await getMutedTabs();
+    await mod.setTabMuted(5, false);
+    const result = await mod.getMutedTabs();
     expect(result[5]).toBe(false);
   });
 
   test("preserves other entries", async () => {
-    await setTabMuted(1, true);
-    await setTabMuted(2, false);
-    const result = await getMutedTabs();
+    await mod.setTabMuted(1, true);
+    await mod.setTabMuted(2, false);
+    const result = await mod.getMutedTabs();
     expect(result[1]).toBe(true);
     expect(result[2]).toBe(false);
   });
 
   test("overwrites same key", async () => {
-    await setTabMuted(1, true);
-    await setTabMuted(1, false);
-    const result = await getMutedTabs();
+    await mod.setTabMuted(1, true);
+    await mod.setTabMuted(1, false);
+    const result = await mod.getMutedTabs();
     expect(result[1]).toBe(false);
   });
 });
@@ -96,23 +96,23 @@ describe("setTabMuted", () => {
 
 describe("removeTabFromStorage", () => {
   test("removes target tab", async () => {
-    await setTabMuted(1, true);
-    await removeTabFromStorage(1);
-    const result = await getMutedTabs();
+    await mod.setTabMuted(1, true);
+    await mod.removeTabFromStorage(1);
+    const result = await mod.getMutedTabs();
     expect(result[1]).toBeUndefined();
   });
 
   test("no-op for missing key", async () => {
-    await removeTabFromStorage(99);
-    const result = await getMutedTabs();
+    await mod.removeTabFromStorage(99);
+    const result = await mod.getMutedTabs();
     expect(result).toEqual({});
   });
 
   test("preserves other entries", async () => {
-    await setTabMuted(1, true);
-    await setTabMuted(2, true);
-    await removeTabFromStorage(1);
-    const result = await getMutedTabs();
+    await mod.setTabMuted(1, true);
+    await mod.setTabMuted(2, true);
+    await mod.removeTabFromStorage(1);
+    const result = await mod.getMutedTabs();
     expect(result[1]).toBeUndefined();
     expect(result[2]).toBe(true);
   });
@@ -122,17 +122,17 @@ describe("removeTabFromStorage", () => {
 
 describe("isTabMuted", () => {
   test("returns true for muted tab", async () => {
-    await setTabMuted(1, true);
-    expect(await isTabMuted(1)).toBe(true);
+    await mod.setTabMuted(1, true);
+    expect(await mod.isTabMuted(1)).toBe(true);
   });
 
   test("returns false for unmuted tab", async () => {
-    await setTabMuted(1, false);
-    expect(await isTabMuted(1)).toBe(false);
+    await mod.setTabMuted(1, false);
+    expect(await mod.isTabMuted(1)).toBe(false);
   });
 
   test("returns false for missing tab", async () => {
-    expect(await isTabMuted(99)).toBe(false);
+    expect(await mod.isTabMuted(99)).toBe(false);
   });
 });
 
@@ -141,16 +141,16 @@ describe("isTabMuted", () => {
 describe("getIsDarkMode", () => {
   test("returns true when set to true", async () => {
     await chrome.storage.session.set({ isDarkMode: true });
-    expect(await getIsDarkMode()).toBe(true);
+    expect(await mod.getIsDarkMode()).toBe(true);
   });
 
   test("returns false when set to false", async () => {
     await chrome.storage.session.set({ isDarkMode: false });
-    expect(await getIsDarkMode()).toBe(false);
+    expect(await mod.getIsDarkMode()).toBe(false);
   });
 
   test("returns false when not set", async () => {
-    expect(await getIsDarkMode()).toBe(false);
+    expect(await mod.getIsDarkMode()).toBe(false);
   });
 });
 
@@ -158,7 +158,7 @@ describe("getIsDarkMode", () => {
 
 describe("updateBadgeAndIcon", () => {
   test("sets badge text to 'M' when muted", async () => {
-    await updateBadgeAndIcon(1, true);
+    await mod.updateBadgeAndIcon(1, true);
     expect(mockCalls.action.setBadgeText).toContainEqual({
       tabId: 1,
       text: BADGE_MUTED,
@@ -166,7 +166,7 @@ describe("updateBadgeAndIcon", () => {
   });
 
   test("sets badge text to '' when unmuted", async () => {
-    await updateBadgeAndIcon(1, false);
+    await mod.updateBadgeAndIcon(1, false);
     expect(mockCalls.action.setBadgeText).toContainEqual({
       tabId: 1,
       text: BADGE_UNMUTED,
@@ -174,7 +174,7 @@ describe("updateBadgeAndIcon", () => {
   });
 
   test("sets red color when muted", async () => {
-    await updateBadgeAndIcon(1, true);
+    await mod.updateBadgeAndIcon(1, true);
     expect(mockCalls.action.setBadgeBackgroundColor).toContainEqual({
       tabId: 1,
       color: BADGE_COLOR_MUTED,
@@ -182,7 +182,7 @@ describe("updateBadgeAndIcon", () => {
   });
 
   test("sets green color when unmuted", async () => {
-    await updateBadgeAndIcon(1, false);
+    await mod.updateBadgeAndIcon(1, false);
     expect(mockCalls.action.setBadgeBackgroundColor).toContainEqual({
       tabId: 1,
       color: BADGE_COLOR_UNMUTED,
@@ -190,7 +190,7 @@ describe("updateBadgeAndIcon", () => {
   });
 
   test("uses muted-light icon paths in light mode when muted", async () => {
-    await updateBadgeAndIcon(1, true);
+    await mod.updateBadgeAndIcon(1, true);
     expect(mockCalls.action.setIcon.length).toBeGreaterThan(0);
     const call = mockCalls.action.setIcon[0] as chrome.action.TabIconDetails;
     expect((call.path as Record<string, string>)["16"]).toContain(
@@ -200,7 +200,7 @@ describe("updateBadgeAndIcon", () => {
 
   test("uses unmuted-dark icon paths in dark mode when unmuted", async () => {
     await chrome.storage.session.set({ isDarkMode: true });
-    await updateBadgeAndIcon(1, false);
+    await mod.updateBadgeAndIcon(1, false);
     expect(mockCalls.action.setIcon.length).toBeGreaterThan(0);
     const call = mockCalls.action.setIcon[0] as chrome.action.TabIconDetails;
     expect((call.path as Record<string, string>)["16"]).toContain(
@@ -210,7 +210,7 @@ describe("updateBadgeAndIcon", () => {
 
   test("falls back to base icons when setIcon rejects on first call", async () => {
     mockConfig.action.setIconRejectTimes = 1;
-    await updateBadgeAndIcon(1, true);
+    await mod.updateBadgeAndIcon(1, true);
     // Two calls: first is the themed attempt (rejected), second is the fallback
     expect(mockCalls.action.setIcon.length).toBe(2);
     const themedCall = mockCalls.action
@@ -230,7 +230,7 @@ describe("updateBadgeAndIcon", () => {
 
 describe("sendMuteToContentScript", () => {
   test("calls tabs.sendMessage with correct args", async () => {
-    await sendMuteToContentScript(3, true);
+    await mod.sendMuteToContentScript(3, true);
     expect(mockCalls.tabs.sendMessage).toContainEqual([
       3,
       { type: "SET_MUTED", muted: true },
@@ -240,7 +240,7 @@ describe("sendMuteToContentScript", () => {
   test("silently ignores rejection", async () => {
     mockConfig.tabs.sendMessageShouldReject = true;
     // ensure no error thrown when sendMessage rejects
-    expect(await sendMuteToContentScript(3, true)).toBeUndefined();
+    expect(await mod.sendMuteToContentScript(3, true)).toBeUndefined();
   });
 });
 
@@ -249,27 +249,27 @@ describe("sendMuteToContentScript", () => {
 describe("toggleMuteTab", () => {
   test("toggles from unmuted to muted", async () => {
     mockConfig.tabs.getResult = { id: 1, mutedInfo: { muted: false } };
-    await toggleMuteTab(1);
+    await mod.toggleMuteTab(1);
     expect(mockCalls.tabs.update).toContainEqual([1, { muted: true }]);
-    expect(await isTabMuted(1)).toBe(true);
+    expect(await mod.isTabMuted(1)).toBe(true);
   });
 
   test("toggles from muted to unmuted", async () => {
     mockConfig.tabs.getResult = { id: 1, mutedInfo: { muted: true } };
-    await toggleMuteTab(1);
+    await mod.toggleMuteTab(1);
     expect(mockCalls.tabs.update).toContainEqual([1, { muted: false }]);
-    expect(await isTabMuted(1)).toBe(false);
+    expect(await mod.isTabMuted(1)).toBe(false);
   });
 
   test("defaults to false when mutedInfo is undefined", async () => {
     mockConfig.tabs.getResult = { id: 1 };
-    await toggleMuteTab(1);
+    await mod.toggleMuteTab(1);
     expect(mockCalls.tabs.update).toContainEqual([1, { muted: true }]);
   });
 
   test("calls sendMuteToContentScript and updateBadgeAndIcon", async () => {
     mockConfig.tabs.getResult = { id: 1, mutedInfo: { muted: false } };
-    await toggleMuteTab(1);
+    await mod.toggleMuteTab(1);
     expect(mockCalls.tabs.sendMessage.length).toBeGreaterThan(0);
     expect(mockCalls.action.setBadgeText.length).toBeGreaterThan(0);
   });
@@ -281,19 +281,19 @@ describe("toggleMuteActiveTab", () => {
   test("calls toggleMuteTab with active tab id", async () => {
     mockConfig.tabs.queryResult = [{ id: 5, mutedInfo: { muted: false } }];
     mockConfig.tabs.getResult = { id: 5, mutedInfo: { muted: false } };
-    await toggleMuteActiveTab();
+    await mod.toggleMuteActiveTab();
     expect(mockCalls.tabs.update).toContainEqual([5, { muted: true }]);
   });
 
   test("no-op when query returns empty array", async () => {
     mockConfig.tabs.queryResult = [];
-    await toggleMuteActiveTab();
+    await mod.toggleMuteActiveTab();
     expect(mockCalls.tabs.update.length).toBe(0);
   });
 
   test("no-op when tab has no id", async () => {
     mockConfig.tabs.queryResult = [{ title: "No id tab", id: undefined }];
-    await toggleMuteActiveTab();
+    await mod.toggleMuteActiveTab();
     expect(mockCalls.tabs.update.length).toBe(0);
   });
 });
@@ -306,7 +306,7 @@ describe("muteAllTabs", () => {
       { id: 1, mutedInfo: { muted: false } },
       { id: 2, mutedInfo: { muted: false } },
     ];
-    await muteAllTabs();
+    await mod.muteAllTabs();
     expect(mockCalls.tabs.update).toContainEqual([1, { muted: true }]);
     expect(mockCalls.tabs.update).toContainEqual([2, { muted: true }]);
   });
@@ -316,8 +316,8 @@ describe("muteAllTabs", () => {
       { id: 1, mutedInfo: { muted: false } },
       { id: 2, mutedInfo: { muted: false } },
     ];
-    await muteAllTabs();
-    const result = await getMutedTabs();
+    await mod.muteAllTabs();
+    const result = await mod.getMutedTabs();
     expect(result[1]).toBe(true);
     expect(result[2]).toBe(true);
   });
@@ -327,7 +327,7 @@ describe("muteAllTabs", () => {
       { title: "no id" },
       { id: 3, mutedInfo: { muted: false } },
     ];
-    await muteAllTabs();
+    await mod.muteAllTabs();
     expect(mockCalls.tabs.update.length).toBe(1);
     expect(
       (mockCalls.tabs.update[0] as [number, chrome.tabs.UpdateProperties])[0]
@@ -340,7 +340,7 @@ describe("muteAllTabs", () => {
 describe("ensureOffscreenDocument", () => {
   test("creates document when none exist", async () => {
     mockConfig.runtime.getContextsResult = [];
-    await ensureOffscreenDocument();
+    await mod.ensureOffscreenDocument();
     expect(mockCalls.offscreen.createDocument.length).toBe(1);
   });
 
@@ -348,7 +348,7 @@ describe("ensureOffscreenDocument", () => {
     mockConfig.runtime.getContextsResult = [
       { contextType: "OFFSCREEN_DOCUMENT" as chrome.runtime.ContextType },
     ];
-    await ensureOffscreenDocument();
+    await mod.ensureOffscreenDocument();
     expect(mockCalls.offscreen.createDocument.length).toBe(0);
   });
 });
@@ -429,7 +429,7 @@ describe("contextMenus.onClicked listener", () => {
 
 describe("tabs.onActivated listener", () => {
   test("reads mute state and updates badge", async () => {
-    await setTabMuted(10, true);
+    await mod.setTabMuted(10, true);
     await mockEvents.tabs.onActivated.fire({ tabId: 10, windowId: 1 });
     expect(mockCalls.action.setBadgeText).toContainEqual({
       tabId: 10,
@@ -440,7 +440,7 @@ describe("tabs.onActivated listener", () => {
 
 describe("tabs.onUpdated listener", () => {
   test("no-op when tab is not muted", async () => {
-    await setTabMuted(11, false);
+    await mod.setTabMuted(11, false);
     await mockEvents.tabs.onUpdated.fire(
       11,
       { status: "complete" },
@@ -450,7 +450,7 @@ describe("tabs.onUpdated listener", () => {
   });
 
   test("sends mute to content script on status=complete when muted", async () => {
-    await setTabMuted(12, true);
+    await mod.setTabMuted(12, true);
     await mockEvents.tabs.onUpdated.fire(
       12,
       { status: "complete" },
@@ -463,7 +463,7 @@ describe("tabs.onUpdated listener", () => {
   });
 
   test("sends mute to content script on url change when muted", async () => {
-    await setTabMuted(13, true);
+    await mod.setTabMuted(13, true);
     await mockEvents.tabs.onUpdated.fire(
       13,
       { url: "https://example.com" },
@@ -478,12 +478,12 @@ describe("tabs.onUpdated listener", () => {
 
 describe("tabs.onRemoved listener", () => {
   test("removes tab from storage", async () => {
-    await setTabMuted(14, true);
+    await mod.setTabMuted(14, true);
     await mockEvents.tabs.onRemoved.fire(14, {
       windowId: 1,
       isWindowClosing: false,
     });
-    const result = await getMutedTabs();
+    const result = await mod.getMutedTabs();
     expect(result[14]).toBeUndefined();
   });
 });
@@ -497,7 +497,7 @@ describe("runtime.onMessage listener", () => {
         /* noop */
       }
     );
-    expect(await getIsDarkMode()).toBe(true);
+    expect(await mod.getIsDarkMode()).toBe(true);
   });
 
   test("DARK_MODE_RESPONSE false sets isDarkMode to false", async () => {
@@ -509,7 +509,7 @@ describe("runtime.onMessage listener", () => {
         /* noop */
       }
     );
-    expect(await getIsDarkMode()).toBe(false);
+    expect(await mod.getIsDarkMode()).toBe(false);
   });
 
   test("unknown message type is ignored", async () => {
@@ -521,6 +521,6 @@ describe("runtime.onMessage listener", () => {
       }
     );
     // No storage change, no error
-    expect(await getIsDarkMode()).toBe(false);
+    expect(await mod.getIsDarkMode()).toBe(false);
   });
 });

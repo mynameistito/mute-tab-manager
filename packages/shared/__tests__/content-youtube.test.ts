@@ -1,13 +1,24 @@
 import { beforeAll, beforeEach, describe, expect, test } from "bun:test";
-import { mockEvents, resetChromeMock } from "./helpers/chrome-mock.ts";
+import {
+  listenerDelta,
+  mockEvents,
+  resetChromeMock,
+  restoreListeners,
+  snapshotListeners,
+} from "./helpers/chrome-mock.ts";
+
+let myListeners: ReturnType<typeof snapshotListeners>;
 
 // Import the module once — it registers MutationObserver and event listeners at module level.
 beforeAll(async () => {
+  const before = snapshotListeners();
   await import("../src/content-youtube.ts");
+  myListeners = listenerDelta(before, snapshotListeners());
 });
 
 beforeEach(async () => {
   resetChromeMock();
+  restoreListeners(myListeners);
   document.body.innerHTML = "";
   // Reset isMuted module state to false
   await mockEvents.runtime.onMessage.fire(
@@ -97,8 +108,8 @@ describe("MutationObserver", () => {
     const video = document.createElement("video");
     document.body.appendChild(video);
 
-    // Allow microtasks + MutationObserver to flush (longer delay for CI)
-    await new Promise((r) => setTimeout(r, 50));
+    // Allow microtasks + MutationObserver to flush
+    await new Promise((r) => setTimeout(r, 0));
 
     expect(video.muted).toBe(true);
   });
@@ -117,7 +128,7 @@ describe("MutationObserver", () => {
     div.appendChild(video);
     document.body.appendChild(div);
 
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, 0));
 
     expect(video.muted).toBe(true);
   });
@@ -126,7 +137,7 @@ describe("MutationObserver", () => {
     const video = document.createElement("video");
     document.body.appendChild(video);
 
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, 0));
 
     expect(video.muted).toBe(false);
   });

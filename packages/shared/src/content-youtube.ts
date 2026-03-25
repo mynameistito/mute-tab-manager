@@ -18,8 +18,7 @@ const observer = new MutationObserver((mutations) => {
     for (const node of Array.from(mutation.addedNodes)) {
       if (
         node instanceof HTMLVideoElement ||
-        (node.nodeType === 1 &&
-          (node as Element).querySelector("video") !== null)
+        (node instanceof HTMLElement && node.querySelector("video") !== null)
       ) {
         applyMuteToAllVideos(true);
         return;
