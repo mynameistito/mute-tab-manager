@@ -170,6 +170,10 @@ class TestMutationObserver {
     }
   }
 
+  disconnect() {
+    // no-op: mock does not track observed targets
+  }
+
   takeRecords() {
     return [];
   }
