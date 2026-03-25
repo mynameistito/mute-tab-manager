@@ -97,8 +97,8 @@ describe("MutationObserver", () => {
     const video = document.createElement("video");
     document.body.appendChild(video);
 
-    // Allow microtasks + MutationObserver to flush
-    await new Promise((r) => setTimeout(r, 0));
+    // Allow microtasks + MutationObserver to flush (longer delay for CI)
+    await new Promise((r) => setTimeout(r, 50));
 
     expect(video.muted).toBe(true);
   });
@@ -117,7 +117,7 @@ describe("MutationObserver", () => {
     div.appendChild(video);
     document.body.appendChild(div);
 
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise((r) => setTimeout(r, 50));
 
     expect(video.muted).toBe(true);
   });
@@ -126,7 +126,7 @@ describe("MutationObserver", () => {
     const video = document.createElement("video");
     document.body.appendChild(video);
 
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise((r) => setTimeout(r, 50));
 
     expect(video.muted).toBe(false);
   });
