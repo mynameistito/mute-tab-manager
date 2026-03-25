@@ -39,12 +39,17 @@ class TestMutationObserver {
     this._patchAppendChild(target);
 
     if (options?.subtree) {
-      // Patch existing child nodes so descendant appends are observed
-      for (const child of Array.from(target.childNodes)) {
-        if (child.nodeType === 1) {
-          this._patchAppendChild(child);
+      // Recursively patch all existing descendant elements so appends at any
+      // depth are observed — not just direct children.
+      const walk = (node: Node) => {
+        for (const child of Array.from(node.childNodes)) {
+          if (child.nodeType === 1) {
+            this._patchAppendChild(child);
+            walk(child);
+          }
         }
-      }
+      };
+      walk(target);
     }
   }
 
