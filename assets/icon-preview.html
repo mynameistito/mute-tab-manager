@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=1024">
     <title>Mute Tab Manager — Icon</title>
     <style>
-    *, *::before, *::after {
+    *,
+    *::before,
+    *::after {
       box-sizing: border-box;
       padding: 0;
       margin: 0;
@@ -19,7 +21,8 @@
       --green: #38a169;
     }
 
-    html, body {
+    html,
+    body {
       width: 1024px;
       height: 1024px;
       overflow: hidden;
@@ -28,14 +31,18 @@
 
     .canvas {
       position: relative;
-      width: 1024px;
-      height: 1024px;
-      background-color: var(--bg);
-      background-image: radial-gradient(circle, #1e2530 1.5px, transparent 1.5px);
-      background-size: 32px 32px;
       display: flex;
       align-items: center;
       justify-content: center;
+      width: 1024px;
+      height: 1024px;
+      background-color: var(--bg);
+      background-image: radial-gradient(
+        circle,
+        #1e2530 1.5px,
+        transparent 1.5px
+      );
+      background-size: 32px 32px;
     }
 
     .icon-card {
@@ -63,10 +70,10 @@
       position: absolute;
       width: 760px;
       height: 760px;
-      border-radius: 180px;
       background: transparent;
-      border: 2px solid transparent;
       background-clip: padding-box;
+      border: 2px solid transparent;
+      border-radius: 180px;
       box-shadow:
         0 0 0 1px rgba(229, 62, 62, 0.08),
         0 0 80px rgba(56, 161, 105, 0.05);

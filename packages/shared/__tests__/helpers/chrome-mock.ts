@@ -454,9 +454,7 @@ const chromeMock = {
   },
   storage: {
     session: {
-      get: (key: string) => {
-        return Promise.resolve({ [key]: sessionStore[key] });
-      },
+      get: (key: string) => Promise.resolve({ [key]: sessionStore[key] }),
       set: (items: Record<string, unknown>) => {
         Object.assign(sessionStore, items);
         return Promise.resolve();
