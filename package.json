@@ -25,10 +25,10 @@
     "@resvg/resvg-js": "^2.6.2",
     "@types/bun": "^1.3.12",
     "@types/node": "^25.6.0",
-    "@typescript/native-preview": "^7.0.0-dev.20260414.1",
+    "@typescript/native-preview": "^7.0.0-dev.20260416.1",
     "happy-dom": "^20.9.0",
-    "lefthook": "^2.1.5",
+    "lefthook": "^2.1.6",
     "turbo": "^2.9.6",
-    "ultracite": "7.5.8"
+    "ultracite": "7.5.9"
   }
 }
