@@ -2,4 +2,4 @@
 "mute-tab-manager": minor
 ---
 
-updating adding the right changeset.
+updating adding the correct changeset.
