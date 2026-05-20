@@ -1,7 +1,7 @@
 {
   "name": "mute-tab-manager",
   "description": "Mute/unmute tabs across Chrome and Firefox with proper YouTube support.",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "type": "module",
   "private": true,
   "packageManager": "bun@1.3.14",
@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit",
     "check": "ultracite check",
     "fix": "ultracite fix",
-    "test": "bun test",
+    "test": "bun test; node .github/setup.js",
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",
     "generate-key": "bun run scripts/generate-key.ts",
@@ -28,16 +28,16 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@biomejs/biome": "2.4.15",
+    "@biomejs/biome": "2.4.16",
     "@changesets/cli": "^2.31.0",
     "@resvg/resvg-js": "^2.6.2",
     "@types/bun": "^1.3.14",
-    "@types/chrome": "^0.1.37",
+    "@types/chrome": "^0.1.42",
     "@types/node": "^25.9.1",
     "happy-dom": "^20.9.0",
-    "lefthook": "^2.1.8",
-    "typescript": "^5.9.0",
-    "ultracite": "7.7.0",
-    "wxt": "^0.20.0"
+    "lefthook": "^2.1.9",
+    "typescript": "^6.0.3",
+    "ultracite": "7.8.1",
+    "wxt": "^0.20.26"
   }
 }
