@@ -28,9 +28,14 @@ g.Event = happyWindow.Event;
 class TestMutationObserver {
   private readonly _callback: MutationCallback;
   private readonly _patched: WeakSet<Node> = new WeakSet();
+  private _disconnected = false;
 
   constructor(callback: MutationCallback) {
     this._callback = callback;
+  }
+
+  get disconnected(): boolean {
+    return this._disconnected;
   }
 
   observe(target: Node, options?: MutationObserverInit) {
@@ -60,6 +65,9 @@ class TestMutationObserver {
 
     const fireCallback = (addedNodes: Node[], removedNodes: Node[] = []) => {
       queueMicrotask(() => {
+        if (this._disconnected) {
+          return;
+        }
         callback(
           [
             {
@@ -142,7 +150,7 @@ class TestMutationObserver {
   }
 
   disconnect() {
-    // no-op
+    this._disconnected = true;
   }
 
   takeRecords() {

@@ -11,11 +11,25 @@ interface ExtensionKeyJson {
   readonly manifestKey: string;
 }
 
-function loadExtensionKey(): ExtensionKeyJson | null {
+function loadExtensionKey(): ExtensionKeyJson {
   try {
-    return JSON.parse(readFileSync(keyJsonPath, "utf8")) as ExtensionKeyJson;
-  } catch {
-    return null;
+    const data = JSON.parse(readFileSync(keyJsonPath, "utf8"));
+    if (
+      typeof data !== "object" ||
+      data === null ||
+      typeof (data as Record<string, unknown>).extensionId !== "string" ||
+      typeof (data as Record<string, unknown>).manifestKey !== "string"
+    ) {
+      throw new Error(
+        "Invalid extension-key.json: missing required fields (extensionId, manifestKey)"
+      );
+    }
+    return data as ExtensionKeyJson;
+  } catch (error) {
+    const err = error as Error;
+    throw new Error(
+      `Failed to load extension key from ${keyJsonPath}: ${err.message}`
+    );
   }
 }
 
@@ -69,7 +83,7 @@ export default defineConfig({
     return {
       ...base,
       permissions: [...base.permissions, "offscreen"],
-      ...(extensionKey ? { key: extensionKey.manifestKey } : {}),
+      key: extensionKey.manifestKey,
     };
   },
 });

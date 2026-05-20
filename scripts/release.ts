@@ -2,7 +2,7 @@
  * Build and publish both browser zips to a GitHub release tagged `v<version>`.
  * Runs on Node. Requires `gh` CLI to be authenticated.
  */
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,14 +10,17 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
 
-function run(cmd: string): string {
-  return execSync(cmd, { cwd: root, stdio: ["ignore", "pipe", "inherit"] })
+function run(cmd: string, args?: string[]): string {
+  return execFileSync(cmd, args, {
+    cwd: root,
+    stdio: ["ignore", "pipe", "inherit"],
+  })
     .toString()
     .trim();
 }
 
-function runInherit(cmd: string): void {
-  execSync(cmd, { cwd: root, stdio: "inherit" });
+function runInherit(cmd: string, args?: string[]): void {
+  execFileSync(cmd, args, { cwd: root, stdio: "inherit" });
 }
 
 interface PackageJson {
@@ -30,7 +33,7 @@ const pkg = JSON.parse(
 const tag = `v${pkg.version}`;
 
 try {
-  run(`gh release view ${tag}`);
+  run("gh", ["release", "view", tag]);
   process.stdout.write(`Release ${tag} already exists - skipping.\n`);
   process.exit(0);
 } catch (error) {
@@ -44,8 +47,8 @@ try {
   }
 }
 
-runInherit("bun run build");
-runInherit("bun run zip");
+runInherit("bun", ["run", "build"]);
+runInherit("bun", ["run", "zip"]);
 
 const chromeZip = resolve(
   root,
@@ -64,6 +67,13 @@ for (const zip of [chromeZip, firefoxZip]) {
   }
 }
 
-runInherit(
-  `gh release create ${tag} "${chromeZip}" "${firefoxZip}" --title ${tag} --generate-notes`
-);
+runInherit("gh", [
+  "release",
+  "create",
+  tag,
+  chromeZip,
+  firefoxZip,
+  "--title",
+  tag,
+  "--generate-notes",
+]);

@@ -37,18 +37,26 @@ export async function muteAllTabs(): Promise<void> {
     (tab): tab is chrome.tabs.Tab & { id: number } => tab.id != null
   );
 
-  await Promise.all(
+  const results = await Promise.allSettled(
     validTabs.map(async (tab) => {
       await chrome.tabs.update(tab.id, { muted: true });
       await sendMuteToContentScript(tab.id, true);
       await updateBadgeAndIcon(tab.id, true);
+      return tab.id;
     })
   );
 
+  const succeededTabIds = results
+    .filter(
+      (result): result is { status: "fulfilled"; value: number } =>
+        result.status === "fulfilled"
+    )
+    .map((result) => result.value);
+
   await withStorageLock(async () => {
     const mutedTabs = await getMutedTabs();
-    for (const tab of validTabs) {
-      mutedTabs[tab.id] = true;
+    for (const tabId of succeededTabIds) {
+      mutedTabs[tabId] = true;
     }
     await chrome.storage.session.set({ [STORAGE_KEY_MUTED_TABS]: mutedTabs });
   });

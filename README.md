@@ -74,7 +74,7 @@ extension.
 
 ## Project layout
 
-```
+```text
 mute-tab-manager/
 ├── src/
 │   ├── entrypoints/
