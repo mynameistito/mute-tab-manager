@@ -14,9 +14,8 @@ function run(cmd: string, args?: string[]): string {
   return execFileSync(cmd, args, {
     cwd: root,
     stdio: ["ignore", "pipe", "pipe"],
-  })
-    .toString()
-    .trim();
+    encoding: "utf8",
+  }).trim();
 }
 
 function runInherit(cmd: string, args?: string[]): void {

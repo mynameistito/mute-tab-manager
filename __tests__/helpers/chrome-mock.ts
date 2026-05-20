@@ -420,18 +420,25 @@ const chromeMock = {
   },
   storage: {
     session: {
-      get: (keys: string | string[] | Record<string, unknown>) => {
+      get: (keys?: string | string[] | Record<string, unknown> | null) => {
+        if (keys === null || keys === undefined) {
+          return Promise.resolve({ ...sessionStore });
+        }
         let keyArr: string[];
+        let keysObj: Record<string, unknown> | undefined;
         if (typeof keys === "string") {
           keyArr = [keys];
         } else if (Array.isArray(keys)) {
           keyArr = keys;
         } else {
+          keysObj = keys;
           keyArr = Object.keys(keys);
         }
         const result: Record<string, unknown> = {};
         for (const k of keyArr) {
-          result[k] = sessionStore[k];
+          result[k] = Object.hasOwn(sessionStore, k)
+            ? sessionStore[k]
+            : keysObj?.[k];
         }
         return Promise.resolve(result);
       },
