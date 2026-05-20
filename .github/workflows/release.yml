@@ -34,6 +34,13 @@ jobs:
 
       
 
+      - name: Verify signing key exists
+        run: |
+          if [ ! -f key.pem ]; then
+            echo "ERROR: EXTENSION_KEY_PEM secret is required for release" >&2
+            exit 1
+          fi
+
       - name: Create Release Pull Request or Publish
         uses: changesets/action@v1
         with:

@@ -75,14 +75,15 @@ extension.
 ## Project layout
 
 ```
-temp/
-├── entrypoints/
-│   ├── background.ts          # service-worker / cross-browser bg
-│   ├── youtube.content.ts     # YouTube <video>.muted enforcer
-│   └── offscreen/             # Chrome-only matchMedia bridge
-│       ├── index.html
-│       └── main.ts
-├── utils/                     # constants, messages, storage, mute, badge
+mute-tab-manager/
+├── src/
+│   ├── entrypoints/
+│   │   ├── background.ts          # service-worker / cross-browser bg
+│   │   ├── youtube.content.ts     # YouTube <video>.muted enforcer
+│   │   └── offscreen/             # Chrome-only matchMedia bridge
+│   │       ├── index.html
+│   │       └── main.ts
+│   └── utils/                     # constants, messages, storage, mute, badge
 ├── public/icons/              # 16/48/128 PNG + source SVG
 ├── __tests__/                 # Bun + happy-dom tests
 ├── scripts/                   # generate-key, generate-icons, release

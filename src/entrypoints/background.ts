@@ -52,13 +52,15 @@ async function ensureOffscreenDocument(): Promise<void> {
 
 export default defineBackground({
   type: "module",
-  main() {
+  async main() {
     const isFirefox = import.meta.env.BROWSER === "firefox";
 
     // Re-initialise on every service-worker startup so theme state is correct
     // after browser restarts (session storage is cleared on restart).
     if (isFirefox) {
       initFirefoxDarkModeDetection();
+    } else {
+      await ensureOffscreenDocument();
     }
 
     chrome.runtime.onInstalled.addListener(async () => {

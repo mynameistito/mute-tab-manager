@@ -33,8 +33,15 @@ try {
   run(`gh release view ${tag}`);
   process.stdout.write(`Release ${tag} already exists - skipping.\n`);
   process.exit(0);
-} catch {
-  // tag not found — continue with publish
+} catch (error) {
+  const err = error as Error & { stderr?: string };
+  const isNotFound =
+    typeof err.stderr === "string" &&
+    (err.stderr.includes("no release found") ||
+      err.stderr.includes("release not found"));
+  if (!isNotFound) {
+    throw error;
+  }
 }
 
 runInherit("bun run build");
