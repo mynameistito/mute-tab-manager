@@ -57,6 +57,19 @@ export default defineBackground({
   async main() {
     const isFirefox = import.meta.env.BROWSER === "firefox";
 
+    // Register message listener BEFORE ensureOffscreenDocument to avoid
+    // missing DARK_MODE_RESPONSE (race condition if offscreen already exists
+    // or when newly created).
+    chrome.runtime.onMessage.addListener(
+      async (message: InboundServiceWorkerMessage) => {
+        if (message.type === "DARK_MODE_RESPONSE") {
+          await chrome.storage.session.set({
+            [STORAGE_KEY_DARK_MODE]: message.isDark,
+          });
+        }
+      }
+    );
+
     // Re-initialise on every service-worker startup so theme state is correct
     // after browser restarts (session storage is cleared on restart).
     if (isFirefox) {
@@ -128,16 +141,5 @@ export default defineBackground({
     chrome.tabs.onRemoved.addListener(async (tabId) => {
       await removeTabFromStorage(tabId);
     });
-
-    // Handle messages from offscreen document
-    chrome.runtime.onMessage.addListener(
-      async (message: InboundServiceWorkerMessage) => {
-        if (message.type === "DARK_MODE_RESPONSE") {
-          await chrome.storage.session.set({
-            [STORAGE_KEY_DARK_MODE]: message.isDark,
-          });
-        }
-      }
-    );
   },
 });
