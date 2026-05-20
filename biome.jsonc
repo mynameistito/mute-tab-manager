@@ -1,20 +1,35 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "extends": ["ultracite/biome/core"],
+  "files": {
+    "includes": [
+      "!**/.wxt",
+      "!**/.output",
+      "!**/node_modules",
+      "!**/coverage",
+      "!**/extension-key.json"
+    ]
+  },
   "javascript": {
-    "globals": ["chrome"]
+    "globals": [
+      "chrome",
+      "browser",
+      "defineBackground",
+      "defineContentScript",
+      "defineUnlistedScript"
+    ]
   },
   "overrides": [
     {
-      "includes": ["scripts/**", "apps/*/scripts/**"],
+      "includes": ["scripts/**"],
       "javascript": {
         "globals": ["Bun"]
       }
     },
     {
-      "includes": ["apps/*/__tests__/**", "packages/*/__tests__/**"],
+      "includes": ["__tests__/**"],
       "javascript": {
-        "globals": ["Bun", "chrome"]
+        "globals": ["Bun", "chrome", "browser"]
       }
     }
   ]
