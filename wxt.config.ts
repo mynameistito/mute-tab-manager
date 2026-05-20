@@ -8,6 +8,7 @@ const keyJsonPath = resolve(here, "extension-key.json");
 
 interface ExtensionKeyJson {
   readonly extensionId: string;
+  readonly generatedAt: string;
   readonly manifestKey: string;
 }
 
@@ -38,8 +39,6 @@ export default defineConfig({
   outDir: ".output",
   manifestVersion: 3,
   manifest: ({ browser }) => {
-    const extensionKey = loadExtensionKey();
-
     const base = {
       name: "Mute Tab Manager",
       description: "Mute/unmute tabs with proper YouTube support.",
@@ -80,6 +79,7 @@ export default defineConfig({
     }
 
     // Chrome / Chromium
+    const extensionKey = loadExtensionKey();
     return {
       ...base,
       permissions: [...base.permissions, "offscreen"],

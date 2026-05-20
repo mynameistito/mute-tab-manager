@@ -38,23 +38,23 @@ export async function muteAllTabs(): Promise<void> {
   );
 
   const results = await Promise.allSettled(
-    validTabs.map(async (tab) => {
-      const updatedTab = await chrome.tabs.update(tab.id, { muted: true });
-      if (!updatedTab) {
-        throw new Error(`Failed to mute tab ${tab.id}`);
-      }
-      await sendMuteToContentScript(tab.id, true);
-      await updateBadgeAndIcon(tab.id, true);
-      return tab.id;
-    })
+    validTabs.map((tab) => chrome.tabs.update(tab.id, { muted: true }))
   );
 
   const succeededTabIds = results
     .filter(
-      (result): result is { status: "fulfilled"; value: number } =>
-        result.status === "fulfilled"
+      (result): result is PromiseFulfilledResult<chrome.tabs.Tab> =>
+        result.status === "fulfilled" && result.value != null
     )
-    .map((result) => result.value);
+    .map((_, i) => validTabs[i]?.id)
+    .filter((id): id is number => id !== undefined);
+
+  await Promise.allSettled(
+    succeededTabIds.map(async (tabId) => {
+      await sendMuteToContentScript(tabId, true);
+      await updateBadgeAndIcon(tabId, true);
+    })
+  );
 
   await withStorageLock(async () => {
     const mutedTabs = await getMutedTabs();

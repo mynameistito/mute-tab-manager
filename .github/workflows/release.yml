@@ -35,6 +35,7 @@ jobs:
       
 
       - name: Verify signing key exists
+        if: ${{ env.EXTENSION_KEY_PEM != '' }}
         run: |
           if [ ! -f key.pem ]; then
             echo "ERROR: EXTENSION_KEY_PEM secret is required for release" >&2

@@ -13,7 +13,7 @@ const root = resolve(here, "..");
 function run(cmd: string, args?: string[]): string {
   return execFileSync(cmd, args, {
     cwd: root,
-    stdio: ["ignore", "pipe", "inherit"],
+    stdio: ["ignore", "pipe", "pipe"],
   })
     .toString()
     .trim();

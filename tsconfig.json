@@ -14,7 +14,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    "types": ["bun", "chrome", "node"]
+    "types": ["bun", "chrome"]
   },
   "include": [
     ".wxt/wxt.d.ts",

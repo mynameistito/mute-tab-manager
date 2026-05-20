@@ -53,6 +53,7 @@ const extensionId = deriveExtensionId(spkiDer);
 const payload = {
   manifestKey,
   extensionId,
+  generatedAt: new Date().toISOString(),
 };
 
 writeFileSync(outPath, `${JSON.stringify(payload, null, 2)}\n`);

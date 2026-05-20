@@ -33,17 +33,7 @@ export default defineContentScript({
       }
     });
 
-    if (document.body) {
-      observer.observe(document.body, { childList: true, subtree: true });
-    } else {
-      document.addEventListener(
-        "DOMContentLoaded",
-        () => {
-          observer.observe(document.body, { childList: true, subtree: true });
-        },
-        { once: true }
-      );
-    }
+    observer.observe(document.body, { childList: true, subtree: true });
 
     // Handle YouTube SPA navigation
     document.addEventListener("yt-navigate-finish", () => {

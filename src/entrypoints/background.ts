@@ -13,7 +13,7 @@ import {
 } from "../utils/mute.ts";
 import { isTabMuted, removeTabFromStorage } from "../utils/storage.ts";
 
-const OFFSCREEN_URL = "offscreen.html" as const;
+const OFFSCREEN_DOCUMENT_PATH = "offscreen.html" as const;
 
 // ── Dark mode detection ────────────────────────────────────────────────────
 
@@ -41,7 +41,7 @@ async function ensureOffscreenDocument(): Promise<void> {
   });
   if (existingContexts.length === 0) {
     await chrome.offscreen.createDocument({
-      url: OFFSCREEN_URL,
+      url: chrome.runtime.getURL(OFFSCREEN_DOCUMENT_PATH),
       reasons: [chrome.offscreen.Reason.MATCH_MEDIA],
       justification: "Detect system dark mode preference",
     });
@@ -61,12 +61,13 @@ export default defineBackground({
     // missing DARK_MODE_RESPONSE (race condition if offscreen already exists
     // or when newly created).
     chrome.runtime.onMessage.addListener(
-      async (message: InboundServiceWorkerMessage) => {
+      (message: InboundServiceWorkerMessage) => {
         if (message.type === "DARK_MODE_RESPONSE") {
-          await chrome.storage.session.set({
-            [STORAGE_KEY_DARK_MODE]: message.isDark,
-          });
+          chrome.storage.session
+            .set({ [STORAGE_KEY_DARK_MODE]: message.isDark })
+            .catch(console.error);
         }
+        return false;
       }
     );
 
@@ -90,9 +91,9 @@ export default defineBackground({
         contexts: ["action"],
       });
 
-      if (isFirefox) {
-        initFirefoxDarkModeDetection();
-      } else {
+      // Dark-mode detection is already initialized in main() for both Firefox
+      // and Chrome. No need to repeat it here.
+      if (!isFirefox) {
         await ensureOffscreenDocument();
       }
     });

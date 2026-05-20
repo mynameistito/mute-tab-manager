@@ -420,7 +420,21 @@ const chromeMock = {
   },
   storage: {
     session: {
-      get: (key: string) => Promise.resolve({ [key]: sessionStore[key] }),
+      get: (keys: string | string[] | Record<string, unknown>) => {
+        let keyArr: string[];
+        if (typeof keys === "string") {
+          keyArr = [keys];
+        } else if (Array.isArray(keys)) {
+          keyArr = keys;
+        } else {
+          keyArr = Object.keys(keys);
+        }
+        const result: Record<string, unknown> = {};
+        for (const k of keyArr) {
+          result[k] = sessionStore[k];
+        }
+        return Promise.resolve(result);
+      },
       set: (items: Record<string, unknown>) => {
         Object.assign(sessionStore, items);
         return Promise.resolve();

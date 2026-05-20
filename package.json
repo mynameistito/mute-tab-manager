@@ -12,7 +12,6 @@
     "build:chrome": "wxt build",
     "build:firefox": "wxt build -b firefox",
     "zip": "wxt zip && wxt zip -b firefox",
-    "compile": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "check": "ultracite check",
     "fix": "ultracite fix",

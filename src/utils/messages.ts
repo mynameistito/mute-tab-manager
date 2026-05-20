@@ -8,5 +8,10 @@ export interface DarkModeResponseMessage {
   readonly type: "DARK_MODE_RESPONSE";
 }
 
+export interface GetDarkModeMessage {
+  readonly type: "GET_DARK_MODE";
+}
+
 export type InboundServiceWorkerMessage = DarkModeResponseMessage;
 export type InboundContentMessage = SetMutedMessage;
+export type InboundOffscreenMessage = GetDarkModeMessage;
