@@ -1,36 +1,62 @@
-import { $ } from "bun";
-import chromePkg from "../apps/chrome/package.json";
-import firefoxPkg from "../apps/firefox/package.json";
-import sharedPkg from "../packages/shared/package.json";
+/**
+ * Build and publish both browser zips to a GitHub release tagged `v<version>`.
+ * Runs on Node. Requires `gh` CLI to be authenticated.
+ */
+import { execSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const versions = [chromePkg.version, firefoxPkg.version, sharedPkg.version];
-if (new Set(versions).size !== 1) {
-  throw new Error(
-    `Package versions are out of sync: chrome=${chromePkg.version}, firefox=${firefoxPkg.version}, shared=${sharedPkg.version}`
-  );
+const here = dirname(fileURLToPath(import.meta.url));
+const root = resolve(here, "..");
+
+function run(cmd: string): string {
+  return execSync(cmd, { cwd: root, stdio: ["ignore", "pipe", "inherit"] })
+    .toString()
+    .trim();
 }
 
-const version = versions[0];
-if (!version) {
-  throw new Error(
-    "Version is undefined - package.json may be missing a version field."
-  );
+function runInherit(cmd: string): void {
+  execSync(cmd, { cwd: root, stdio: "inherit" });
 }
-const tag = `v${version}`;
 
-const existing = await $`gh release view ${tag}`.nothrow();
-if (existing.exitCode === 0) {
+interface PackageJson {
+  readonly version: string;
+}
+
+const pkg = JSON.parse(
+  readFileSync(resolve(root, "package.json"), "utf8")
+) as PackageJson;
+const tag = `v${pkg.version}`;
+
+try {
+  run(`gh release view ${tag}`);
   process.stdout.write(`Release ${tag} already exists - skipping.\n`);
   process.exit(0);
+} catch {
+  // tag not found — continue with publish
 }
 
-await $`bun run build`;
+runInherit("bun run build");
+runInherit("bun run zip");
 
-const chromeZip = `mute-tab-manager-chrome-v${version}.zip`;
-const firefoxZip = `mute-tab-manager-firefox-v${version}.zip`;
+const chromeZip = resolve(
+  root,
+  ".output",
+  `mute-tab-manager-${pkg.version}-chrome.zip`
+);
+const firefoxZip = resolve(
+  root,
+  ".output",
+  `mute-tab-manager-${pkg.version}-firefox.zip`
+);
 
-await $`rm -f ${chromeZip} ${firefoxZip}`;
-await $`cd apps/chrome/dist && zip -r ../../../${chromeZip} .`;
-await $`cd apps/firefox/dist && zip -r ../../../${firefoxZip} .`;
+for (const zip of [chromeZip, firefoxZip]) {
+  if (!existsSync(zip)) {
+    throw new Error(`Missing build artifact: ${zip}`);
+  }
+}
 
-await $`gh release create ${tag} ${chromeZip} ${firefoxZip} --title ${tag} --generate-notes`;
+runInherit(
+  `gh release create ${tag} "${chromeZip}" "${firefoxZip}" --title ${tag} --generate-notes`
+);

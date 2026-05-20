@@ -1,22 +1,97 @@
-node_modules
+# ── Dependencies ───────────────────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+.pnp.cjs
+.yarn/cache
+.yarn/install-state.gz
+.yarn/build-state.yml
+
+# Lockfiles from other package managers (we use Bun → keep bun.lock only)
 package-lock.json
-out
-dist
+yarn.lock
+pnpm-lock.yaml
+shrinkwrap.json
+
+# ── WXT / build output ─────────────────────────────────────────────────────
+.wxt/
+.output/
+web-ext-artifacts/
+stats.html
+stats-*.html
+out/
+dist/
+build/
+
+# Packaged extensions
+*.crx
+*.xpi
+*.zip
 *.tgz
-coverage
+
+# ── Test / coverage ────────────────────────────────────────────────────────
+coverage/
 *.lcov
-logs
-*.log
+.nyc_output/
+junit.xml
 report.*.json
+
+# ── Logs ───────────────────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+bun-debug.log*
+lerna-debug.log*
+
+# ── Environment ────────────────────────────────────────────────────────────
 .env
+.env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env.local
+.env.*.local
+
+# ── Caches ─────────────────────────────────────────────────────────────────
+.cache/
 .eslintcache
-.cache
-*.tsbuildinfo
-.idea
-.DS_Store
-.claude/
+.biomecache
 .turbo/
+.parcel-cache/
+.vite/
+*.tsbuildinfo
+.bun/
+
+# ── Editors / IDEs ─────────────────────────────────────────────────────────
+.idea/
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.history/
+.fleet/
+*.swp
+*.swo
+*~
+
+# ── OS junk ────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ── Agent / tooling artifacts ──────────────────────────────────────────────
+.claude/
+.cursor/
+.aider*
+
+# ── Signing key (NEVER commit) ─────────────────────────────────────────────
+# The derived public key + extension ID live in extension-key.json (committed).
+# The private key only lives locally / in the EXTENSION_KEY_PEM Actions secret.
+key.pem
+*.pem
+!extension-key.json

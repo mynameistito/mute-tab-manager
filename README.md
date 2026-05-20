@@ -2,127 +2,126 @@
 
 > Silence any tab instantly — with real YouTube support.
 
-![Social Preview](assets/social-preview.png)
-
----
-
-## Table of Contents
-
-- [Why This Exists](#why-this-exists)
-- [Features](#features)
-- [Installation](#installation)
-- [Keyboard Shortcut](#keyboard-shortcut)
-- [Development](#development)
-- [How It Works](#how-it-works)
-- [Permissions](#permissions)
-- [License](#license)
-
----
-
-## Why This Exists
-
-Chrome's built-in tab mute (`chrome.tabs.update({ muted: true })`) silences a tab's audio output, but it does not update YouTube's player UI or the underlying `HTMLVideoElement.muted` state. This extension supplements the native mute by also directly setting `video.muted` via a content script, keeping YouTube's player in sync and surviving SPA navigations and page reloads.
+A WXT-powered browser extension that mutes/unmutes tabs across Chrome and
+Firefox from a single TypeScript codebase. Supplements Chrome's built-in tab
+mute (which silences audio output but doesn't sync YouTube's player UI) by
+directly setting `HTMLVideoElement.muted` via a content script.
 
 ## Features
 
 - **Mute any tab** — click the toolbar icon or press `Alt+Shift+M`
-- **YouTube support** — directly mutes `<video>` elements, surviving SPA navigation and page reloads
-- **Mute all tabs** — right-click the toolbar icon → "Mute All Tabs"
-- **Visual badge** — "M" badge appears on the icon when a tab is muted
-- **Dark mode aware** — icon adapts to system light/dark preference
-- **Persistent state** — muted tabs stay muted across navigation within the same session
-- **Chrome & Firefox** — both browsers supported from the same codebase
+- **YouTube support** — mutes `<video>` elements directly, surviving SPA
+  navigation and reloads
+- **Mute all tabs** — right-click the toolbar icon → *Mute All Tabs*
+- **Visual badge** — "M" appears on the icon when a tab is muted
+- **Dark-mode aware** — icon adapts to system theme (offscreen document on
+  Chrome, native `matchMedia` on Firefox)
+- **Persistent state** — muted tabs stay muted across navigations in the
+  same session
+- **One codebase, two browsers** — WXT builds Chrome + Firefox from the
+  same source
 
-## Installation
+## Tech stack
 
-### From Source
+| Concern | Tool |
+|---|---|
+| Extension framework | [WXT](https://wxt.dev) |
+| Package manager | [Bun](https://bun.sh) |
+| Build/script runtime | [Node](https://nodejs.org) (via `--experimental-strip-types`) |
+| Language | TypeScript (strict) |
+| Lint + format | [Ultracite](https://github.com/haydenbleasel/ultracite) (Biome) |
+| Versioning | [Changesets](https://github.com/changesets/changesets) |
+| Hooks | [Lefthook](https://lefthook.dev) |
+| Tests | `bun test` + [happy-dom](https://github.com/capricorn86/happy-dom) |
 
-```bash
-bun install
-bun run build
-```
-
-**Chrome:**
-
-1. Open `chrome://extensions`
-2. Enable **Developer mode** (top-right toggle)
-3. Click **Load unpacked**
-4. Select the `apps/chrome/dist/` folder
-
-**Firefox:**
-
-1. Open `about:debugging` → **This Firefox**
-2. Click **Load Temporary Add-on…**
-3. Select `apps/firefox/dist/manifest.json`
-
-> For a permanent Firefox install, sign the extension via [addons.mozilla.org](https://addons.mozilla.org/developers/) using the built `apps/firefox/dist/` folder.
-
-## Keyboard Shortcut
-
-`Alt+Shift+M` toggles mute on the active tab.
-
-- Chrome: customise at `chrome://extensions/shortcuts`
-- Firefox: customise at `about:addons` → gear icon → **Manage Extension Shortcuts**
-
-## Development
+## Quick start
 
 ```bash
-bun install           # install dependencies and set up workspace symlinks
-bun run build         # production build for all packages → apps/*/dist/
-bun run test          # run all test suites
-bun run typecheck     # TypeScript check across all packages
-bun run check         # lint + format check
-bun run fix           # auto-fix lint + format issues
+bun install                    # installs deps and runs `wxt prepare`
+bun run generate-key           # generates key.pem + extension-key.json (first run)
+bun run dev                    # Chrome dev mode with HMR
+bun run dev:firefox            # Firefox dev mode
+bun run build                  # production builds for Chrome + Firefox → .output/
+bun run zip                    # zipped artefacts ready for store submission
 ```
 
-Individual packages can be worked on directly:
+### Loading the built extension
 
-```bash
-cd apps/chrome && bun run build:watch   # rebuild Chrome extension on file changes
-cd apps/firefox && bun run build:watch  # rebuild Firefox extension on file changes
+**Chrome** (`.output/chrome-mv3/`):
+1. `chrome://extensions` → enable **Developer mode**
+2. **Load unpacked** → select `.output/chrome-mv3/`
+
+**Firefox** (`.output/firefox-mv3/`):
+1. `about:debugging` → **This Firefox**
+2. **Load Temporary Add-on…** → select `.output/firefox-mv3/manifest.json`
+
+## Persistent Chrome extension ID
+
+`scripts/generate-key.ts` creates a 2048-bit RSA private key (`key.pem`)
+and writes the derived SPKI public key + deterministic extension ID into
+`extension-key.json`. `wxt.config.ts` reads that file and injects the
+public key into the Chrome manifest's `key` field so the extension always
+loads under the same ID — regardless of machine or unpack location.
+
+- `key.pem` is **gitignored** (private). Keep it safe; reuse it via the
+  `EXTENSION_KEY_PEM` GitHub Actions secret in `release.yml`.
+- `extension-key.json` **is committed** — it only contains the public key
+  and the derived ID, both safe to share.
+
+Lost the key? Run `bun run generate-key` again. The extension ID will
+change, so anyone with the old ID installed will see it as a different
+extension.
+
+## Project layout
+
+```
+temp/
+├── entrypoints/
+│   ├── background.ts          # service-worker / cross-browser bg
+│   ├── youtube.content.ts     # YouTube <video>.muted enforcer
+│   └── offscreen/             # Chrome-only matchMedia bridge
+│       ├── index.html
+│       └── main.ts
+├── utils/                     # constants, messages, storage, mute, badge
+├── public/icons/              # 16/48/128 PNG + source SVG
+├── __tests__/                 # Bun + happy-dom tests
+├── scripts/                   # generate-key, generate-icons, release
+├── .github/workflows/         # ci.yml + release.yml
+├── .changeset/                # changeset config
+├── wxt.config.ts              # per-browser manifest builder
+├── biome.jsonc                # Ultracite preset
+├── lefthook.yml               # pre-commit hooks
+└── bunfig.toml                # bun test preload + coverage
 ```
 
-### Monorepo Structure
+## Commands
 
-```text
-mute-tab-manager/
-├── apps/
-│   ├── chrome/          # Chrome MV3 extension (@mute-tab-manager/chrome)
-│   │   ├── src/         # service-worker.ts, offscreen.ts
-│   │   ├── public/      # manifest.json, offscreen.html, icons/
-│   │   └── __tests__/
-│   └── firefox/         # Firefox MV3 extension (@mute-tab-manager/firefox)
-│       ├── src/         # service-worker.ts (matchMedia-based dark mode)
-│       ├── public/      # manifest.json, icons/
-│       └── __tests__/
-├── packages/
-│   └── shared/          # Shared code (@mute-tab-manager/shared)
-│       └── src/         # constants.ts, types/messages.ts, content-youtube.ts
-└── scripts/
-    └── release.ts       # Builds and publishes both zips to a GitHub release
-```
-
-Built with [Bun](https://bun.sh) and TypeScript, orchestrated with [Turborepo](https://turbo.build). Linted and formatted with [Ultracite](https://github.com/haydenbleasel/ultracite) (Biome).
-
-## How It Works
-
-| Component | Location | Purpose |
-|---|---|---|
-| Service worker (Chrome) | `apps/chrome/src/service-worker.ts` | Handles toolbar clicks, keyboard shortcuts, context menus, badge/icon updates, and tab lifecycle |
-| Service worker (Firefox) | `apps/firefox/src/service-worker.ts` | Same as Chrome, but uses `matchMedia()` directly instead of an offscreen document |
-| Content script | `packages/shared/src/content-youtube.ts` | Runs on YouTube pages; directly sets `HTMLVideoElement.muted`, watches for new `<video>` elements via `MutationObserver` |
-| Offscreen document | `apps/chrome/src/offscreen.ts` | Chrome only — detects system dark/light mode via `window.matchMedia` and reports back to the service worker |
+| Command | Purpose |
+|---|---|
+| `bun run dev` | WXT dev with HMR (Chrome) |
+| `bun run dev:firefox` | WXT dev (Firefox) |
+| `bun run build` | Production build (both browsers) |
+| `bun run zip` | Build + zip both browsers |
+| `bun run typecheck` | TypeScript check |
+| `bun run check` | Ultracite lint + format check |
+| `bun run fix` | Ultracite auto-fix |
+| `bun run test` | Run Bun test suite |
+| `bun run test:coverage` | Coverage (lcov + text) |
+| `bun run generate-key` | (Re-)derive Chrome `key` + extension ID |
+| `bun run generate-icons` | Re-rasterise SVG → PNG icons |
+| `bun run changeset` | Add a changeset |
+| `bun run release` | Build + publish GitHub release |
 
 ## Permissions
 
 | Permission | Chrome | Firefox | Reason |
 |---|:---:|:---:|---|
-| `tabs` | ✓ | ✓ | Query and mute all open tabs |
-| `activeTab` | ✓ | ✓ | Access the currently active tab |
-| `contextMenus` | ✓ | ✓ | Add right-click menu items to the toolbar icon |
-| `offscreen` | ✓ | — | Create an offscreen document for dark mode detection (Chrome only) |
-| `storage` | ✓ | ✓ | Persist muted state across tab navigations |
-| `*://*.youtube.com/*` | ✓ | ✓ | Inject content script to mute YouTube video elements |
+| `tabs` | ✓ | ✓ | Query and mute open tabs |
+| `activeTab` | ✓ | ✓ | Access the active tab |
+| `contextMenus` | ✓ | ✓ | Right-click toolbar menu |
+| `offscreen` | ✓ | — | Dark-mode detection (Chrome) |
+| `storage` | ✓ | ✓ | Persist muted state |
+| `*://*.youtube.com/*` | ✓ | ✓ | Content script |
 
 ## License
 

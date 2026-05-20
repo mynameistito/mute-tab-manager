@@ -1,0 +1,12 @@
+// Chrome-only: detect system dark mode in a page context (service workers
+// lack DOM access) and report results to the background script.
+
+const mq = window.matchMedia("(prefers-color-scheme: dark)");
+
+const send = (isDark: boolean): Promise<void> =>
+  chrome.runtime.sendMessage({ type: "DARK_MODE_RESPONSE", isDark });
+
+send(mq.matches);
+mq.addEventListener("change", (e) => {
+  send(e.matches);
+});
