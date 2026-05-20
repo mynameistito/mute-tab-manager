@@ -32,8 +32,7 @@ jobs:
           printf '%s' "$EXTENSION_KEY_PEM" > key.pem
           chmod 600 key.pem
 
-      - name: Ensure extension key
-        run: bun run generate-key
+      
 
       - name: Create Release Pull Request or Publish
         uses: changesets/action@v1
