@@ -44,12 +44,12 @@ export async function muteAllTabs(): Promise<void> {
   const succeededTabIds = results
     .map((result, i) => ({ result, originalIndex: i }))
     .filter(
-      ({
-        result,
-      }): result is {
+      (
+        item
+      ): item is {
         result: PromiseFulfilledResult<chrome.tabs.Tab>;
         originalIndex: number;
-      } => result.status === "fulfilled" && result.value != null
+      } => item.result.status === "fulfilled" && item.result.value != null
     )
     .map(({ originalIndex }) => validTabs[originalIndex]?.id)
     .filter((id): id is number => id !== undefined);

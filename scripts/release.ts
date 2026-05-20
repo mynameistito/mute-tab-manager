@@ -11,7 +11,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
 
 function run(cmd: string, args?: string[]): string {
-  return execFileSync(cmd, args, {
+  return execFileSync(cmd, args ?? [], {
     cwd: root,
     stdio: ["ignore", "pipe", "pipe"],
     encoding: "utf8",
