@@ -39,7 +39,10 @@ export async function muteAllTabs(): Promise<void> {
 
   const results = await Promise.allSettled(
     validTabs.map(async (tab) => {
-      await chrome.tabs.update(tab.id, { muted: true });
+      const updatedTab = await chrome.tabs.update(tab.id, { muted: true });
+      if (!updatedTab) {
+        throw new Error(`Failed to mute tab ${tab.id}`);
+      }
       await sendMuteToContentScript(tab.id, true);
       await updateBadgeAndIcon(tab.id, true);
       return tab.id;

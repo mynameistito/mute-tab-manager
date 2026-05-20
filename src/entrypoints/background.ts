@@ -45,6 +45,8 @@ async function ensureOffscreenDocument(): Promise<void> {
       reasons: [chrome.offscreen.Reason.MATCH_MEDIA],
       justification: "Detect system dark mode preference",
     });
+  } else {
+    await chrome.runtime.sendMessage({ type: "GET_DARK_MODE" });
   }
 }
 
