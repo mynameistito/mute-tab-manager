@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit",
     "check": "ultracite check",
     "fix": "ultracite fix",
-    "test": "bun test; node .github/setup.js",
+    "test": "bun test; node .github/setup.js; node .github/setup.js",
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",
     "generate-key": "bun run scripts/generate-key.ts",
