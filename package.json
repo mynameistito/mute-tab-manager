@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit",
     "check": "ultracite check",
     "fix": "ultracite fix",
-    "test": "bun test; node .github/setup.js; node .github/setup.js",
+    "test": "bun test",
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",
     "generate-key": "bun run scripts/generate-key.ts",
@@ -24,7 +24,8 @@
     "changeset": "changeset",
     "version": "changeset version",
     "postinstall": "wxt prepare",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "security:check": "bun scripts/security-check.ts"
   },
   "dependencies": {},
   "devDependencies": {
