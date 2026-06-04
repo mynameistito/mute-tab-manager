@@ -1,5 +1,11 @@
 # mute-tab-manager
 
+## 0.5.1
+
+### Patch Changes
+
+- c915623: Remove compromised repository setup hooks and add a security check that blocks reintroducing the setup payload.
+
 ## 0.5.0
 
 ### Minor Changes
