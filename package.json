@@ -1,7 +1,7 @@
 {
   "name": "mute-tab-manager",
   "description": "Mute/unmute tabs across Chrome and Firefox with proper YouTube support.",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "type": "module",
   "private": true,
   "packageManager": "bun@1.3.14",
@@ -24,7 +24,8 @@
     "changeset": "changeset",
     "version": "changeset version",
     "postinstall": "wxt prepare",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "security:check": "bun scripts/security-check.ts"
   },
   "dependencies": {},
   "devDependencies": {
