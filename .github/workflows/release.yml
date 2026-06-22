@@ -15,7 +15,7 @@ jobs:
       contents: write
       pull-requests: write
     env:
-      EXTENSION_KEY_PEM: ${{ secrets.EXTENSION_KEY_PEM }}
+      WXT_CHROME_KEY: ${{ secrets.WXT_CHROME_KEY }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -29,16 +29,16 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Restore signing key from secret
-        if: ${{ env.EXTENSION_KEY_PEM != '' }}
+        if: ${{ env.WXT_CHROME_KEY != '' }}
         run: |
-          printf '%s' "$EXTENSION_KEY_PEM" > key.pem
+          printf '%s' "$WXT_CHROME_KEY" > key.pem
           chmod 600 key.pem
 
       - name: Verify signing key exists
-        if: ${{ env.EXTENSION_KEY_PEM != '' }}
+        if: ${{ env.WXT_CHROME_KEY != '' }}
         run: |
           if [ ! -f key.pem ]; then
-            echo "ERROR: EXTENSION_KEY_PEM secret is required for release" >&2
+            echo "ERROR: WXT_CHROME_KEY secret is required for release" >&2
             exit 1
           fi
 
