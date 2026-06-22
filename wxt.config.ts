@@ -4,12 +4,18 @@ import path from "node:path";
 
 import { defineConfig } from "wxt";
 
+/**
+ * Load the raw private-key PEM string used to derive a stable Chrome extension ID.
+ *
+ * - In dev / local builds we read `key.pem` from the repo root.
+ * - In CI we accept `WXT_CHROME_KEY` as the raw private-key PEM (from a secret).
+ * - Only relevant for Chromium targets — Firefox uses `browser_specific_settings`.
+ **/
 const loadPemSource = (): string | undefined => {
   const fromEnv = process.env.WXT_CHROME_KEY;
   if (fromEnv && fromEnv.length > 0) {
     return fromEnv;
   }
-
   const keyPath = path.resolve("key.pem");
   if (existsSync(keyPath)) {
     return readFileSync(keyPath, "utf-8");
@@ -50,7 +56,8 @@ export default defineConfig({
           suggested_key: { default: "Alt+Shift+M" },
         },
       },
-      description: "Mute/unmute tabs with proper YouTube support.",
+      description:
+        "Mute and unmute tabs across Chrome and Firefox with YouTube support.",
       host_permissions: ["*://*.youtube.com/*"],
       icons: {
         128: "icons/icon-128.png",
@@ -67,7 +74,7 @@ export default defineConfig({
         browser_specific_settings: {
           gecko: {
             data_collection_permissions: { required: ["none"] },
-            id: "mute-tab@mynameistito",
+            id: "mute-tab-manager@mynameistito.com",
             strict_min_version: "140.0",
           },
         },
