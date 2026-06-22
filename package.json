@@ -21,6 +21,7 @@
     "generate-icons": "bun run scripts/generate-icons.ts",
     "release": "bun run scripts/release.ts",
     "changeset": "changeset",
+    "changeset-add": "bun run scripts/add-changeset.ts",
     "version": "changeset version",
     "postinstall": "wxt prepare",
     "prepare": "lefthook install"
