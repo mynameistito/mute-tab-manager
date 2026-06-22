@@ -10,12 +10,7 @@
  *
  * Runs on Node (uses `node:crypto` + `node:fs`).
  */
-import {
-  createHash,
-  createPrivateKey,
-  createPublicKey,
-  generateKeyPairSync,
-} from "node:crypto";
+import { createHash, createPublicKey, generateKeyPairSync } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
@@ -47,7 +42,7 @@ const deriveExtensionId = (spkiDer: Buffer): string => {
 };
 
 const privateKeyPem = loadOrCreatePrivateKey();
-const publicKey = createPublicKey(createPrivateKey(privateKeyPem));
+const publicKey = createPublicKey(privateKeyPem);
 const spkiDer = publicKey.export({ format: "der", type: "spki" }) as Buffer;
 const manifestKey = spkiDer.toString("base64");
 const extensionId = deriveExtensionId(spkiDer);
