@@ -71,9 +71,9 @@ const getPackageName = (packageJson: PackageJson) => {
 const hasChangesetsCliDependency = (packageJson: PackageJson) =>
   Boolean(
     packageJson.dependencies?.["@changesets/cli"] ||
-      packageJson.devDependencies?.["@changesets/cli"] ||
-      packageJson.optionalDependencies?.["@changesets/cli"] ||
-      packageJson.peerDependencies?.["@changesets/cli"]
+    packageJson.devDependencies?.["@changesets/cli"] ||
+    packageJson.optionalDependencies?.["@changesets/cli"] ||
+    packageJson.peerDependencies?.["@changesets/cli"]
   );
 
 const assertChangesetsCliInstalled = (
