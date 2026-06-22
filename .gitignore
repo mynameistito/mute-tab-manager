@@ -90,8 +90,6 @@ $RECYCLE.BIN/
 .aider*
 
 # ── Signing key (NEVER commit) ─────────────────────────────────────────────
-# The derived public key + extension ID live in extension-key.json (committed).
-# The private key only lives locally / in the EXTENSION_KEY_PEM Actions secret.
+# The private key only lives locally / in the WXT_CHROME_KEY Actions secret.
 key.pem
 *.pem
-!extension-key.json

@@ -38,7 +38,8 @@ directly setting `HTMLVideoElement.muted` via a content script.
 
 ```bash
 bun install                    # installs deps and runs `wxt prepare`
-bun run generate-key           # generates key.pem + extension-key.json (first run)
+bun run generate-key           # generates key.pem (first run)
+bun run generate-key --force   # overwrites key.pem and rotates the extension ID
 bun run dev                    # Chrome dev mode with HMR
 bun run dev:firefox            # Firefox dev mode
 bun run build                  # production builds for Chrome + Firefox → .output/
@@ -59,20 +60,18 @@ bun run zip                    # zipped artefacts ready for store submission
 
 ## Persistent Chrome extension ID
 
-`scripts/generate-key.ts` creates a 2048-bit RSA private key (`key.pem`)
-and writes the derived SPKI public key + deterministic extension ID into
-`extension-key.json`. `wxt.config.ts` reads that file and injects the
-public key into the Chrome manifest's `key` field so the extension always
-loads under the same ID — regardless of machine or unpack location.
+`scripts/generate-key.ts` creates a 2048-bit RSA private key (`key.pem`).
+`wxt.config.ts` reads either the `WXT_CHROME_KEY` environment variable or
+local `key.pem`, derives the SPKI public key, and injects it into the Chrome
+manifest's `key` field so the extension always loads under the same ID.
 
 - `key.pem` is **gitignored** (private). Keep it safe; reuse it via the
-  `EXTENSION_KEY_PEM` GitHub Actions secret in `release.yml`.
-- `extension-key.json` **is committed** — it only contains the public key
-  and the derived ID, both safe to share.
+  `WXT_CHROME_KEY` GitHub Actions secret in `release.yml`.
+- If neither `WXT_CHROME_KEY` nor `key.pem` exists, WXT omits `manifest.key`
+  so dependency installs and throwaway local builds still work.
 
-Lost the key? Run `bun run generate-key` again. The extension ID will
-change, so anyone with the old ID installed will see it as a different
-extension.
+Lost the key? Run `bun run generate-key --force`. The extension ID will change,
+so anyone with the old ID installed will see it as a different extension.
 
 ## Project layout
 
@@ -99,21 +98,22 @@ mute-tab-manager/
 
 ## Commands
 
-| Command                  | Purpose                                 |
-| ------------------------ | --------------------------------------- |
-| `bun run dev`            | WXT dev with HMR (Chrome)               |
-| `bun run dev:firefox`    | WXT dev (Firefox)                       |
-| `bun run build`          | Production build (both browsers)        |
-| `bun run zip`            | Build + zip both browsers               |
-| `bun run typecheck`      | TypeScript check                        |
-| `bun run check`          | Ultracite lint + format check           |
-| `bun run fix`            | Ultracite auto-fix                      |
-| `bun run test`           | Run Bun test suite                      |
-| `bun run test:coverage`  | Coverage (lcov + text)                  |
-| `bun run generate-key`   | (Re-)derive Chrome `key` + extension ID |
-| `bun run generate-icons` | Re-rasterise SVG → PNG icons            |
-| `bun run changeset`      | Add a changeset                         |
-| `bun run release`        | Build + publish GitHub release          |
+| Command                   | Purpose                               |
+| ------------------------- | ------------------------------------- |
+| `bun run dev`             | WXT dev with HMR (Chrome)             |
+| `bun run dev:firefox`     | WXT dev (Firefox)                     |
+| `bun run build`           | Production build (both browsers)      |
+| `bun run zip`             | Build + zip both browsers             |
+| `bun run typecheck`       | TypeScript check                      |
+| `bun run check`           | Ultracite lint + format check         |
+| `bun run fix`             | Ultracite auto-fix                    |
+| `bun run test`            | Run Bun test suite                    |
+| `bun run test:coverage`   | Coverage (lcov + text)                |
+| `bun run generate-key`    | Generate Chrome key + extension ID    |
+| `bun run generate-key -f` | Overwrite key and rotate extension ID |
+| `bun run generate-icons`  | Re-rasterise SVG → PNG icons          |
+| `bun run changeset`       | Add a changeset                       |
+| `bun run release`         | Build + publish GitHub release        |
 
 ## Permissions
 
