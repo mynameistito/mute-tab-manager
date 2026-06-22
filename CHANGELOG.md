@@ -1,6 +1,10 @@
 # mute-tab-manager
 
-## 0.5.1
+## 1.0.1
+
+### Major Changes
+
+- Update to major to be aligned with the Firefox published extension.
 
 ### Patch Changes
 
