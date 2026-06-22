@@ -4,14 +4,14 @@ import path from "node:path";
 
 import { defineConfig } from "wxt";
 
-/**
+
 /**
  * Load the raw private-key PEM string used to derive a stable Chrome extension ID.
  *
  * - In dev / local builds we read `key.pem` from the repo root.
  * - In CI we accept `WXT_CHROME_KEY` as the raw private-key PEM (from a secret).
  * - Only relevant for Chromium targets — Firefox uses `browser_specific_settings`.
- */
+**/
 const loadPemSource = (): string | undefined => {
   const fromEnv = process.env.WXT_CHROME_KEY;
   if (fromEnv && fromEnv.length > 0) {
