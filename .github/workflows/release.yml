@@ -34,8 +34,6 @@ jobs:
           printf '%s' "$EXTENSION_KEY_PEM" > key.pem
           chmod 600 key.pem
 
-      
-
       - name: Verify signing key exists
         if: ${{ env.EXTENSION_KEY_PEM != '' }}
         run: |

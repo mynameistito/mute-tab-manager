@@ -2,18 +2,18 @@ import { updateBadgeAndIcon } from "./badge.ts";
 import { STORAGE_KEY_MUTED_TABS } from "./constants.ts";
 import { getMutedTabs, setTabMuted, withStorageLock } from "./storage.ts";
 
-export async function sendMuteToContentScript(
+export const sendMuteToContentScript = async (
   tabId: number,
   muted: boolean
-): Promise<void> {
+): Promise<void> => {
   try {
-    await chrome.tabs.sendMessage(tabId, { type: "SET_MUTED", muted });
+    await chrome.tabs.sendMessage(tabId, { muted, type: "SET_MUTED" });
   } catch {
     // Content script not available on this tab (non-YouTube); silently ignore
   }
-}
+};
 
-export async function toggleMuteTab(tabId: number): Promise<void> {
+export const toggleMuteTab = async (tabId: number): Promise<void> => {
   const tab = await chrome.tabs.get(tabId);
   const currentlyMuted = tab.mutedInfo?.muted ?? false;
   const newMuted = !currentlyMuted;
@@ -22,19 +22,20 @@ export async function toggleMuteTab(tabId: number): Promise<void> {
   await sendMuteToContentScript(tabId, newMuted);
   await setTabMuted(tabId, newMuted);
   await updateBadgeAndIcon(tabId, newMuted);
-}
+};
 
-export async function toggleMuteActiveTab(): Promise<void> {
+export const toggleMuteActiveTab = async (): Promise<void> => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (tab?.id != null) {
+  if (tab?.id !== undefined && tab.id !== null) {
     await toggleMuteTab(tab.id);
   }
-}
+};
 
-export async function muteAllTabs(): Promise<void> {
+export const muteAllTabs = async (): Promise<void> => {
   const tabs = await chrome.tabs.query({});
   const validTabs = tabs.filter(
-    (tab): tab is chrome.tabs.Tab & { id: number } => tab.id != null
+    (tab): tab is chrome.tabs.Tab & { id: number } =>
+      tab.id !== undefined && tab.id !== null
   );
 
   const results = await Promise.allSettled(
@@ -42,14 +43,17 @@ export async function muteAllTabs(): Promise<void> {
   );
 
   const succeededTabIds = results
-    .map((result, i) => ({ result, originalIndex: i }))
+    .map((result, i) => ({ originalIndex: i, result }))
     .filter(
       (
         item
       ): item is {
         result: PromiseFulfilledResult<chrome.tabs.Tab>;
         originalIndex: number;
-      } => item.result.status === "fulfilled" && item.result.value != null
+      } =>
+        item.result.status === "fulfilled" &&
+        item.result.value !== undefined &&
+        item.result.value !== null
     )
     .map(({ originalIndex }) => validTabs[originalIndex]?.id)
     .filter((id): id is number => id !== undefined);
@@ -68,4 +72,4 @@ export async function muteAllTabs(): Promise<void> {
     }
     await chrome.storage.session.set({ [STORAGE_KEY_MUTED_TABS]: mutedTabs });
   });
-}
+};

@@ -1,10 +1,10 @@
 import { readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import path from "node:path";
+
 import { defineConfig } from "wxt";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const keyJsonPath = resolve(here, "extension-key.json");
+const here = import.meta.dirname;
+const keyJsonPath = path.resolve(here, "extension-key.json");
 
 interface ExtensionKeyJson {
   readonly extensionId: string;
@@ -12,9 +12,9 @@ interface ExtensionKeyJson {
   readonly manifestKey: string;
 }
 
-function loadExtensionKey(): ExtensionKeyJson {
+const loadExtensionKey = (): ExtensionKeyJson => {
   try {
-    const data = JSON.parse(readFileSync(keyJsonPath, "utf8"));
+    const data = JSON.parse(readFileSync(keyJsonPath, "utf-8"));
     if (
       typeof data !== "object" ||
       data === null ||
@@ -29,40 +29,38 @@ function loadExtensionKey(): ExtensionKeyJson {
   } catch (error) {
     const err = error as Error;
     throw new Error(
-      `Failed to load extension key from ${keyJsonPath}: ${err.message}`
+      `Failed to load extension key from ${keyJsonPath}: ${err.message}`,
+      { cause: error }
     );
   }
-}
+};
 
 export default defineConfig({
-  srcDir: "src",
-  outDir: ".output",
-  manifestVersion: 3,
   manifest: ({ browser }) => {
     const base = {
-      name: "Mute Tab Manager",
-      description: "Mute/unmute tabs with proper YouTube support.",
-      permissions: ["activeTab", "tabs", "contextMenus", "storage"],
-      host_permissions: ["*://*.youtube.com/*"],
       action: {
         default_icon: {
+          128: "icons/icon-128.png",
           16: "icons/icon-16.png",
           48: "icons/icon-48.png",
-          128: "icons/icon-128.png",
         },
         default_title: "Toggle Mute",
       },
       commands: {
         "toggle-mute": {
-          suggested_key: { default: "Alt+Shift+M" },
           description: "Toggle mute for the active tab",
+          suggested_key: { default: "Alt+Shift+M" },
         },
       },
+      description: "Mute/unmute tabs with proper YouTube support.",
+      host_permissions: ["*://*.youtube.com/*"],
       icons: {
+        128: "icons/icon-128.png",
         16: "icons/icon-16.png",
         48: "icons/icon-48.png",
-        128: "icons/icon-128.png",
       },
+      name: "Mute Tab Manager",
+      permissions: ["activeTab", "tabs", "contextMenus", "storage"],
     };
 
     if (browser === "firefox") {
@@ -70,9 +68,9 @@ export default defineConfig({
         ...base,
         browser_specific_settings: {
           gecko: {
+            data_collection_permissions: { required: ["none"] },
             id: "mute-tab@mynameistito",
             strict_min_version: "140.0",
-            data_collection_permissions: { required: ["none"] },
           },
         },
       };
@@ -82,8 +80,11 @@ export default defineConfig({
     const extensionKey = loadExtensionKey();
     return {
       ...base,
-      permissions: [...base.permissions, "offscreen"],
       key: extensionKey.manifestKey,
+      permissions: [...base.permissions, "offscreen"],
     };
   },
+  manifestVersion: 3,
+  outDir: ".output",
+  srcDir: "src",
 });

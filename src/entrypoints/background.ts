@@ -20,7 +20,7 @@ const OFFSCREEN_DOCUMENT_PATH = "offscreen.html" as const;
 /**
  * Firefox MV3 supports matchMedia() natively inside the service worker.
  */
-function initFirefoxDarkModeDetection(): void {
+const initFirefoxDarkModeDetection = (): void => {
   if (typeof matchMedia === "undefined") {
     return;
   }
@@ -29,31 +29,28 @@ function initFirefoxDarkModeDetection(): void {
   mq.addEventListener("change", (e) => {
     chrome.storage.session.set({ [STORAGE_KEY_DARK_MODE]: e.matches });
   });
-}
+};
 
 /**
  * Chrome service workers cannot access matchMedia. We host an offscreen
  * document that runs matchMedia and reports the result back.
  */
-async function ensureOffscreenDocument(): Promise<void> {
+const ensureOffscreenDocument = async (): Promise<void> => {
   const existingContexts = await chrome.runtime.getContexts({
     contextTypes: [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT],
   });
-  if (existingContexts.length === 0) {
-    await chrome.offscreen.createDocument({
-      url: chrome.runtime.getURL(OFFSCREEN_DOCUMENT_PATH),
-      reasons: [chrome.offscreen.Reason.MATCH_MEDIA],
-      justification: "Detect system dark mode preference",
-    });
-  } else {
-    await chrome.runtime.sendMessage({ type: "GET_DARK_MODE" });
-  }
-}
+  await (existingContexts.length === 0
+    ? chrome.offscreen.createDocument({
+        justification: "Detect system dark mode preference",
+        reasons: [chrome.offscreen.Reason.MATCH_MEDIA],
+        url: chrome.runtime.getURL(OFFSCREEN_DOCUMENT_PATH),
+      })
+    : chrome.runtime.sendMessage({ type: "GET_DARK_MODE" }));
+};
 
 // ── Background entrypoint ──────────────────────────────────────────────────
 
 export default defineBackground({
-  type: "module",
   async main() {
     const isFirefox = import.meta.env.BROWSER === "firefox";
 
@@ -63,9 +60,15 @@ export default defineBackground({
     chrome.runtime.onMessage.addListener(
       (message: InboundServiceWorkerMessage) => {
         if (message.type === "DARK_MODE_RESPONSE") {
-          chrome.storage.session
-            .set({ [STORAGE_KEY_DARK_MODE]: message.isDark })
-            .catch(console.error);
+          void (async () => {
+            try {
+              await chrome.storage.session.set({
+                [STORAGE_KEY_DARK_MODE]: message.isDark,
+              });
+            } catch (error) {
+              console.error(error);
+            }
+          })();
         }
         return false;
       }
@@ -81,14 +84,14 @@ export default defineBackground({
 
     chrome.runtime.onInstalled.addListener(async () => {
       chrome.contextMenus.create({
+        contexts: ["action"],
         id: CONTEXT_MENU_TOGGLE_ID,
         title: "Toggle Mute",
-        contexts: ["action"],
       });
       chrome.contextMenus.create({
+        contexts: ["action"],
         id: CONTEXT_MENU_MUTE_ALL,
         title: "Mute All Tabs",
-        contexts: ["action"],
       });
 
       // Dark-mode detection is already initialized in main() for both Firefox
@@ -134,7 +137,7 @@ export default defineBackground({
       }
 
       // Re-inject mute state after SPA navigation (handles YouTube pushState)
-      if (changeInfo.url != null) {
+      if (changeInfo.url !== undefined && changeInfo.url !== null) {
         await sendMuteToContentScript(tabId, true);
       }
     });
@@ -143,4 +146,5 @@ export default defineBackground({
       await removeTabFromStorage(tabId);
     });
   },
+  type: "module",
 });

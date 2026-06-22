@@ -4,30 +4,28 @@
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import path from "node:path";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const root = resolve(here, "..");
+const here = import.meta.dirname;
+const root = path.resolve(here, "..");
 
-function run(cmd: string, args?: string[]): string {
-  return execFileSync(cmd, args ?? [], {
+const run = (cmd: string, args?: string[]): string =>
+  execFileSync(cmd, args ?? [], {
     cwd: root,
+    encoding: "utf-8",
     stdio: ["ignore", "pipe", "pipe"],
-    encoding: "utf8",
   }).trim();
-}
 
-function runInherit(cmd: string, args?: string[]): void {
+const runInherit = (cmd: string, args?: string[]): void => {
   execFileSync(cmd, args, { cwd: root, stdio: "inherit" });
-}
+};
 
 interface PackageJson {
   readonly version: string;
 }
 
 const pkg = JSON.parse(
-  readFileSync(resolve(root, "package.json"), "utf8")
+  readFileSync(path.resolve(root, "package.json"), "utf-8")
 ) as PackageJson;
 const tag = `v${pkg.version}`;
 
@@ -49,12 +47,12 @@ try {
 runInherit("bun", ["run", "build"]);
 runInherit("bun", ["run", "zip"]);
 
-const chromeZip = resolve(
+const chromeZip = path.resolve(
   root,
   ".output",
   `mute-tab-manager-${pkg.version}-chrome.zip`
 );
-const firefoxZip = resolve(
+const firefoxZip = path.resolve(
   root,
   ".output",
   `mute-tab-manager-${pkg.version}-firefox.zip`
