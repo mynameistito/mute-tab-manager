@@ -1,4 +1,7 @@
-import { STORAGE_KEY_DARK_MODE, STORAGE_KEY_MUTED_TABS } from "./constants.ts";
+import {
+  STORAGE_KEY_DARK_MODE,
+  STORAGE_KEY_MUTED_TABS,
+} from "@/utils/constants.ts";
 
 export type MutedTabsMap = Record<number, boolean>;
 

@@ -1,6 +1,6 @@
-import { updateBadgeAndIcon } from "./badge.ts";
-import { STORAGE_KEY_MUTED_TABS } from "./constants.ts";
-import { getMutedTabs, setTabMuted, withStorageLock } from "./storage.ts";
+import { updateBadgeAndIcon } from "@/utils/badge.ts";
+import { STORAGE_KEY_MUTED_TABS } from "@/utils/constants.ts";
+import { getMutedTabs, setTabMuted, withStorageLock } from "@/utils/storage.ts";
 
 export const sendMuteToContentScript = async (
   tabId: number,

@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
+import { resetChromeMock } from "@/tests/helpers/chrome-mock.ts";
 import {
   getIsDarkMode,
   getMutedTabs,
   isTabMuted,
   removeTabFromStorage,
   setTabMuted,
-} from "../src/utils/storage.ts";
-import { resetChromeMock } from "./helpers/chrome-mock.ts";
+} from "@/utils/storage.ts";
 
 beforeEach(() => {
   resetChromeMock();

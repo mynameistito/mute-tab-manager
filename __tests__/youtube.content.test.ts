@@ -6,7 +6,7 @@ import {
   resetChromeMock,
   restoreListeners,
   snapshotListeners,
-} from "./helpers/chrome-mock.ts";
+} from "@/tests/helpers/chrome-mock.ts";
 
 let myListeners: ReturnType<typeof snapshotListeners>;
 
@@ -14,7 +14,7 @@ beforeAll(async () => {
   const before = snapshotListeners();
   // Importing the entrypoint with our defineContentScript stub immediately
   // invokes main() and registers DOM/runtime listeners.
-  const mod = await import("../src/entrypoints/youtube.content.ts");
+  const mod = await import("@/entrypoints/youtube.content.ts");
   // The default export is the object returned by defineContentScript;
   // invoke its main() to install runtime listeners (idempotent).
   // WXT passes a ContentScriptContext at runtime — pass a stub for tests.

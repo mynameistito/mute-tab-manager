@@ -5,8 +5,8 @@ import {
   BADGE_UNMUTED,
   ICON_BASE,
   ICON_SIZES,
-} from "./constants.ts";
-import { getIsDarkMode } from "./storage.ts";
+} from "@/utils/constants.ts";
+import { getIsDarkMode } from "@/utils/storage.ts";
 
 const makeIconPaths = (
   variant: string,

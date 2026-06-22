@@ -1,4 +1,4 @@
-import type { InboundContentMessage } from "../utils/messages.ts";
+import type { InboundContentMessage } from "@/utils/messages.ts";
 
 const applyMuteToAllVideos = (muted: boolean): void => {
   for (const video of document.querySelectorAll("video")) {

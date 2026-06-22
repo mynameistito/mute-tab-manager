@@ -8,7 +8,7 @@ import {
   CONTEXT_MENU_TOGGLE_ID,
   STORAGE_KEY_DARK_MODE,
   STORAGE_KEY_MUTED_TABS,
-} from "../src/utils/constants.ts";
+} from "@/utils/constants.ts";
 
 describe("constants", () => {
   test("STORAGE_KEY_MUTED_TABS", () =>
