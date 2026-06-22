@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
+
 import {
   getIsDarkMode,
   getMutedTabs,
@@ -36,12 +37,14 @@ describe("getMutedTabs", () => {
 describe("setTabMuted", () => {
   test("writes true for a tab", async () => {
     await setTabMuted(5, true);
-    expect((await getMutedTabs())[5]).toBe(true);
+    const mutedTabs = await getMutedTabs();
+    expect(mutedTabs[5]).toBe(true);
   });
 
   test("writes false for a tab", async () => {
     await setTabMuted(5, false);
-    expect((await getMutedTabs())[5]).toBe(false);
+    const mutedTabs = await getMutedTabs();
+    expect(mutedTabs[5]).toBe(false);
   });
 
   test("preserves other entries", async () => {
@@ -55,7 +58,8 @@ describe("setTabMuted", () => {
   test("overwrites same key", async () => {
     await setTabMuted(1, true);
     await setTabMuted(1, false);
-    expect((await getMutedTabs())[1]).toBe(false);
+    const mutedTabs = await getMutedTabs();
+    expect(mutedTabs[1]).toBe(false);
   });
 });
 
@@ -63,7 +67,8 @@ describe("removeTabFromStorage", () => {
   test("removes target tab", async () => {
     await setTabMuted(1, true);
     await removeTabFromStorage(1);
-    expect((await getMutedTabs())[1]).toBeUndefined();
+    const mutedTabs = await getMutedTabs();
+    expect(mutedTabs[1]).toBeUndefined();
   });
 
   test("no-op for missing key", async () => {

@@ -3,24 +3,24 @@
  * (white-filled for dark backgrounds). Runs on Node via `--experimental-strip-types`.
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import path from "node:path";
+
 import { Resvg } from "@resvg/resvg-js";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const iconsDir = resolve(here, "..", "public", "icons");
-const svgPath = resolve(iconsDir, "sound-off-filled-svgrepo-com.svg");
-const svgSource = readFileSync(svgPath, "utf8");
+const here = import.meta.dirname;
+const iconsDir = path.resolve(here, "..", "public", "icons");
+const svgPath = path.resolve(iconsDir, "sound-off-filled-svgrepo-com.svg");
+const svgSource = readFileSync(svgPath, "utf-8");
 
 // Switch the fill so the icon shows up on dark Chrome toolbars.
-const svgWhite = svgSource.replace(/fill="#000000"/g, 'fill="#ffffff"');
+const svgWhite = svgSource.replaceAll('fill="#000000"', 'fill="#ffffff"');
 
 for (const size of [16, 48, 128]) {
   const resvg = new Resvg(svgWhite, {
     fitTo: { mode: "width", value: size },
   });
   const png = resvg.render().asPng();
-  const outPath = resolve(iconsDir, `icon-${size}.png`);
+  const outPath = path.resolve(iconsDir, `icon-${size}.png`);
   writeFileSync(outPath, png);
   process.stdout.write(`Created ${outPath} (${size}x${size})\n`);
 }

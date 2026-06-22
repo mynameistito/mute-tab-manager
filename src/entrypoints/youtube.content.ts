@@ -1,17 +1,15 @@
 import type { InboundContentMessage } from "../utils/messages.ts";
 
+const applyMuteToAllVideos = (muted: boolean): void => {
+  for (const video of document.querySelectorAll("video")) {
+    video.muted = muted;
+  }
+};
+
 export default defineContentScript({
-  matches: ["*://*.youtube.com/*"],
-  runAt: "document_idle",
   allFrames: true,
   main() {
     let isMuted = false;
-
-    function applyMuteToAllVideos(muted: boolean): void {
-      for (const video of Array.from(document.querySelectorAll("video"))) {
-        video.muted = muted;
-      }
-    }
 
     // Watch for dynamically added <video> elements; only fire when a video
     // node is actually added, and only when muted, to avoid unnecessary scans.
@@ -20,7 +18,7 @@ export default defineContentScript({
         return;
       }
       for (const mutation of mutations) {
-        for (const node of Array.from(mutation.addedNodes)) {
+        for (const node of mutation.addedNodes) {
           if (
             node instanceof HTMLVideoElement ||
             (node instanceof HTMLElement &&
@@ -48,4 +46,6 @@ export default defineContentScript({
       }
     });
   },
+  matches: ["*://*.youtube.com/*"],
+  runAt: "document_idle",
 });

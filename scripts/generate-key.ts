@@ -10,50 +10,47 @@
  *
  * Runs on Node (uses `node:crypto` + `node:fs`).
  */
-import {
-  createHash,
-  createPrivateKey,
-  createPublicKey,
-  generateKeyPairSync,
-} from "node:crypto";
+import { createHash, createPublicKey, generateKeyPairSync } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import path from "node:path";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const root = resolve(here, "..");
-const keyPath = resolve(root, "key.pem");
-const outPath = resolve(root, "extension-key.json");
+const here = import.meta.dirname;
+const root = path.resolve(here, "..");
+const keyPath = path.resolve(root, "key.pem");
+const outPath = path.resolve(root, "extension-key.json");
+const extensionIdAlphabetStart = "a".codePointAt(0) ?? 97;
 
-function loadOrCreatePrivateKey(): string {
+const loadOrCreatePrivateKey = (): string => {
   if (existsSync(keyPath)) {
-    return readFileSync(keyPath, "utf8");
+    return readFileSync(keyPath, "utf-8");
   }
   const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
   const pem = privateKey.export({ format: "pem", type: "pkcs8" }).toString();
   writeFileSync(keyPath, pem, { mode: 0o600 });
   return pem;
-}
+};
 
-function deriveExtensionId(spkiDer: Buffer): string {
+const deriveExtensionId = (spkiDer: Buffer): string => {
   const hash = createHash("sha256").update(spkiDer).digest("hex").slice(0, 32);
   let id = "";
   for (const ch of hash) {
-    id += String.fromCharCode("a".charCodeAt(0) + Number.parseInt(ch, 16));
+    id += String.fromCodePoint(
+      extensionIdAlphabetStart + Number.parseInt(ch, 16)
+    );
   }
   return id;
-}
+};
 
 const privateKeyPem = loadOrCreatePrivateKey();
-const publicKey = createPublicKey(createPrivateKey(privateKeyPem));
+const publicKey = createPublicKey(privateKeyPem);
 const spkiDer = publicKey.export({ format: "der", type: "spki" }) as Buffer;
 const manifestKey = spkiDer.toString("base64");
 const extensionId = deriveExtensionId(spkiDer);
 
 const payload = {
-  manifestKey,
   extensionId,
   generatedAt: new Date().toISOString(),
+  manifestKey,
 };
 
 writeFileSync(outPath, `${JSON.stringify(payload, null, 2)}\n`);

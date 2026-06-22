@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
+
 import {
   muteAllTabs,
   sendMuteToContentScript,
@@ -21,7 +22,7 @@ describe("sendMuteToContentScript", () => {
     await sendMuteToContentScript(3, true);
     expect(mockCalls.tabs.sendMessage).toContainEqual([
       3,
-      { type: "SET_MUTED", muted: true },
+      { muted: true, type: "SET_MUTED" },
     ]);
   });
 
@@ -68,7 +69,7 @@ describe("toggleMuteActiveTab", () => {
   });
 
   test("no-op when tab has no id", async () => {
-    mockConfig.tabs.queryResult = [{ title: "No id tab", id: undefined }];
+    mockConfig.tabs.queryResult = [{ id: undefined, title: "No id tab" }];
     await toggleMuteActiveTab();
     expect(mockCalls.tabs.update.length).toBe(0);
   });

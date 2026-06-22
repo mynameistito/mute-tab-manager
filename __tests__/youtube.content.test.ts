@@ -1,4 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, test } from "bun:test";
+
 import {
   listenerDelta,
   mockEvents,
@@ -27,21 +28,21 @@ beforeEach(async () => {
   document.body.innerHTML = "";
   // Reset module-level isMuted via a SET_MUTED:false message
   await mockEvents.runtime.onMessage.fire(
-    { type: "SET_MUTED", muted: false },
+    { muted: false, type: "SET_MUTED" },
     {} as chrome.runtime.MessageSender,
-    () => undefined
+    () => {}
   );
 });
 
 describe("SET_MUTED message", () => {
   test("mutes all video elements when muted=true", async () => {
     const video = document.createElement("video");
-    document.body.appendChild(video);
+    document.body.append(video);
 
     await mockEvents.runtime.onMessage.fire(
-      { type: "SET_MUTED", muted: true },
+      { muted: true, type: "SET_MUTED" },
       {} as chrome.runtime.MessageSender,
-      () => undefined
+      () => {}
     );
 
     expect(video.muted).toBe(true);
@@ -50,12 +51,12 @@ describe("SET_MUTED message", () => {
   test("unmutes all video elements when muted=false", async () => {
     const video = document.createElement("video");
     video.muted = true;
-    document.body.appendChild(video);
+    document.body.append(video);
 
     await mockEvents.runtime.onMessage.fire(
-      { type: "SET_MUTED", muted: false },
+      { muted: false, type: "SET_MUTED" },
       {} as chrome.runtime.MessageSender,
-      () => undefined
+      () => {}
     );
 
     expect(video.muted).toBe(false);
@@ -64,9 +65,9 @@ describe("SET_MUTED message", () => {
   test("no error when no videos present", async () => {
     await expect(
       mockEvents.runtime.onMessage.fire(
-        { type: "SET_MUTED", muted: true },
+        { muted: true, type: "SET_MUTED" },
         {} as chrome.runtime.MessageSender,
-        () => undefined
+        () => {}
       )
     ).resolves.toBeUndefined();
   });
@@ -75,12 +76,12 @@ describe("SET_MUTED message", () => {
 describe("yt-navigate-finish event", () => {
   test("mutes existing videos while muted", async () => {
     const video = document.createElement("video");
-    document.body.appendChild(video);
+    document.body.append(video);
 
     await mockEvents.runtime.onMessage.fire(
-      { type: "SET_MUTED", muted: true },
+      { muted: true, type: "SET_MUTED" },
       {} as chrome.runtime.MessageSender,
-      () => undefined
+      () => {}
     );
 
     video.muted = false;
@@ -90,7 +91,7 @@ describe("yt-navigate-finish event", () => {
 
   test("does not mute videos while not muted", () => {
     const video = document.createElement("video");
-    document.body.appendChild(video);
+    document.body.append(video);
     document.dispatchEvent(new Event("yt-navigate-finish"));
     expect(video.muted).toBe(false);
   });

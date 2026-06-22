@@ -4,23 +4,27 @@
 const mq = window.matchMedia("(prefers-color-scheme: dark)");
 
 const send = (isDark: boolean): Promise<void> =>
-  chrome.runtime.sendMessage({ type: "DARK_MODE_RESPONSE", isDark });
+  chrome.runtime.sendMessage({ isDark, type: "DARK_MODE_RESPONSE" });
 
-const reportDarkMode = (): void => {
-  send(mq.matches).catch(() => {
-    /* ignore - background may have restarted */
-  });
+const reportDarkMode = async (): Promise<void> => {
+  try {
+    await send(mq.matches);
+  } catch {
+    // Ignore: background may have restarted.
+  }
 };
 
-reportDarkMode();
-mq.addEventListener("change", (e) => {
-  send(e.matches).catch(() => {
-    /* ignore - background may have restarted */
-  });
+void reportDarkMode();
+mq.addEventListener("change", async (e) => {
+  try {
+    await send(e.matches);
+  } catch {
+    // Ignore: background may have restarted.
+  }
 });
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === "GET_DARK_MODE") {
-    reportDarkMode();
+    void reportDarkMode();
   }
 });

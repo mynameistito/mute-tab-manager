@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
+
 import { updateBadgeAndIcon } from "../src/utils/badge.ts";
 import {
   BADGE_COLOR_MUTED,
@@ -36,16 +37,16 @@ describe("updateBadgeAndIcon", () => {
   test("sets red color when muted", async () => {
     await updateBadgeAndIcon(1, true);
     expect(mockCalls.action.setBadgeBackgroundColor).toContainEqual({
-      tabId: 1,
       color: BADGE_COLOR_MUTED,
+      tabId: 1,
     });
   });
 
   test("sets green color when unmuted", async () => {
     await updateBadgeAndIcon(1, false);
     expect(mockCalls.action.setBadgeBackgroundColor).toContainEqual({
-      tabId: 1,
       color: BADGE_COLOR_UNMUTED,
+      tabId: 1,
     });
   });
 

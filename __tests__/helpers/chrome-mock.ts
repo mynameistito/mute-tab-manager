@@ -19,6 +19,7 @@ g.window = happyWindow;
 g.document = happyWindow.document;
 g.HTMLElement = happyWindow.HTMLElement;
 g.HTMLVideoElement = happyWindow.HTMLVideoElement;
+g.Node = happyWindow.Node;
 g.EventTarget = happyWindow.EventTarget;
 g.Event = happyWindow.Event;
 
@@ -26,12 +27,12 @@ g.Event = happyWindow.Event;
 // (happy-dom's native impl is flaky on Linux CI). Limited to childList
 // insertions, which is all this codebase requires.
 class TestMutationObserver {
-  private readonly _callback: MutationCallback;
-  private readonly _patched: WeakSet<Node> = new WeakSet();
+  private readonly _handleMutations: MutationCallback;
+  private readonly _patched = new WeakSet<Node>();
   private _disconnected = false;
 
-  constructor(callback: MutationCallback) {
-    this._callback = callback;
+  constructor(handleMutations: MutationCallback) {
+    this._handleMutations = handleMutations;
   }
 
   get disconnected(): boolean {
@@ -43,7 +44,7 @@ class TestMutationObserver {
 
     if (options?.subtree) {
       const walk = (node: Node) => {
-        for (const child of Array.from(node.childNodes)) {
+        for (const child of node.childNodes) {
           if (child.nodeType === 1) {
             this._patchInsertionMethods(child);
             walk(child);
@@ -60,7 +61,7 @@ class TestMutationObserver {
     }
     this._patched.add(node);
 
-    const callback = this._callback;
+    const handleMutations = this._handleMutations;
     const observer = this as unknown as MutationObserver;
 
     const fireCallback = (addedNodes: Node[], removedNodes: Node[] = []) => {
@@ -68,18 +69,18 @@ class TestMutationObserver {
         if (this._disconnected) {
           return;
         }
-        callback(
+        handleMutations(
           [
             {
-              type: "childList",
               addedNodes: addedNodes as unknown as NodeList,
-              removedNodes: removedNodes as unknown as NodeList,
-              target: node,
               attributeName: null,
               attributeNamespace: null,
               nextSibling: null,
-              previousSibling: null,
               oldValue: null,
+              previousSibling: null,
+              removedNodes: removedNodes as unknown as NodeList,
+              target: node,
+              type: "childList",
             } as unknown as MutationRecord,
           ],
           observer
@@ -90,7 +91,7 @@ class TestMutationObserver {
     const patchNewSubtree = (n: Node) => {
       if (n.nodeType === 1) {
         this._patchInsertionMethods(n);
-        for (const child of Array.from(n.childNodes)) {
+        for (const child of n.childNodes) {
           patchNewSubtree(child);
         }
       }
@@ -154,6 +155,9 @@ class TestMutationObserver {
   }
 
   takeRecords() {
+    if (this._disconnected) {
+      return [];
+    }
     return [];
   }
 }
@@ -166,46 +170,140 @@ interface MockEventBase {
   _listeners: unknown[];
 }
 
-interface MockEvent<TCallback extends (...args: any[]) => any>
-  extends MockEventBase {
+type MockListener = (...args: never[]) => unknown;
+
+interface MockEvent<TCallback extends MockListener> extends MockEventBase {
   _listeners: TCallback[];
-  addListener(cb: TCallback): void;
-  clearListeners(): void;
-  fire(...args: Parameters<TCallback>): Promise<void>;
-  removeListener(cb: TCallback): void;
+  addListener: (listener: TCallback) => void;
+  clearListeners: () => void;
+  fire: (...args: Parameters<TCallback>) => Promise<void>;
+  removeListener: (listener: TCallback) => void;
 }
 
-function createMockEvent<
-  TCallback extends (...args: any[]) => any,
->(): MockEvent<TCallback> {
+const createMockEvent = <
+  TCallback extends MockListener,
+>(): MockEvent<TCallback> => {
   const listeners: TCallback[] = [];
   return {
     _listeners: listeners,
-    addListener(cb: TCallback) {
-      listeners.push(cb);
-    },
-    removeListener(cb: TCallback) {
-      const idx = listeners.indexOf(cb);
-      if (idx >= 0) {
-        listeners.splice(idx, 1);
-      }
-    },
-    async fire(...args: Parameters<TCallback>) {
-      for (const cb of listeners) {
-        await (cb as unknown as (...a: unknown[]) => unknown)(...args);
-      }
+    addListener(listener: TCallback) {
+      listeners.push(listener);
     },
     clearListeners() {
       listeners.length = 0;
     },
+    async fire(...args: Parameters<TCallback>) {
+      await Promise.all(
+        listeners.map((listener) =>
+          (listener as unknown as (...a: unknown[]) => unknown)(...args)
+        )
+      );
+    },
+    removeListener(listener: TCallback) {
+      const idx = listeners.indexOf(listener);
+      if (idx !== -1) {
+        listeners.splice(idx, 1);
+      }
+    },
   };
-}
+};
+
+let sessionStore: Record<string, unknown> = {};
+
+export const mockConfig = {
+  action: {
+    setIconRejectTimes: 0,
+  },
+  runtime: {
+    getContextsResult: [] as Partial<chrome.runtime.ExtensionContext>[],
+  },
+  tabs: {
+    getResult: {
+      id: 1,
+      mutedInfo: { muted: false },
+    } as Partial<chrome.tabs.Tab>,
+    queryResult: [] as Partial<chrome.tabs.Tab>[],
+    sendMessageShouldReject: false,
+  },
+};
+
+export const mockCalls = {
+  action: {
+    setBadgeBackgroundColor: [] as chrome.action.BadgeColorDetails[],
+    setBadgeText: [] as chrome.action.BadgeTextDetails[],
+    setIcon: [] as chrome.action.TabIconDetails[],
+  },
+  contextMenus: {
+    create: [] as chrome.contextMenus.CreateProperties[],
+  },
+  offscreen: {
+    createDocument: [] as chrome.offscreen.CreateParameters[],
+  },
+  runtime: {
+    getContexts: [] as chrome.runtime.ContextFilter[],
+    sendMessage: [] as unknown[],
+  },
+  tabs: {
+    get: [] as number[],
+    query: [] as chrome.tabs.QueryInfo[],
+    sendMessage: [] as [number, unknown][],
+    update: [] as [number, chrome.tabs.UpdateProperties][],
+  },
+};
+
+export const mockEvents = {
+  action: {
+    onClicked: createMockEvent<(tab: chrome.tabs.Tab) => void>(),
+  },
+  commands: {
+    onCommand: createMockEvent<(command: string) => void>(),
+  },
+  contextMenus: {
+    onClicked:
+      createMockEvent<
+        (info: chrome.contextMenus.OnClickData, tab?: chrome.tabs.Tab) => void
+      >(),
+  },
+  runtime: {
+    onInstalled:
+      createMockEvent<(details: chrome.runtime.InstalledDetails) => void>(),
+    onMessage:
+      createMockEvent<
+        (
+          message: unknown,
+          sender: chrome.runtime.MessageSender,
+          sendResponse: (r?: unknown) => void
+        ) => void
+      >(),
+  },
+  tabs: {
+    onActivated:
+      createMockEvent<
+        (activeInfo: { tabId: number; windowId: number }) => void
+      >(),
+    onRemoved:
+      createMockEvent<
+        (
+          tabId: number,
+          removeInfo: { windowId: number; isWindowClosing: boolean }
+        ) => void
+      >(),
+    onUpdated:
+      createMockEvent<
+        (
+          tabId: number,
+          changeInfo: { status?: string; url?: string },
+          tab: chrome.tabs.Tab
+        ) => void
+      >(),
+  },
+};
 
 /**
  * Snapshot the current listeners on all mock events. Use with `listenerDelta`
  * to isolate listeners registered by a single module under test.
  */
-export function snapshotListeners(): Map<MockEventBase, unknown[]> {
+export const snapshotListeners = (): Map<MockEventBase, unknown[]> => {
   const snap = new Map<MockEventBase, unknown[]>();
   for (const group of Object.values(mockEvents)) {
     for (const event of Object.values(group) as MockEventBase[]) {
@@ -213,23 +311,23 @@ export function snapshotListeners(): Map<MockEventBase, unknown[]> {
     }
   }
   return snap;
-}
+};
 
-/** Compute the listeners added between two snapshots (after − before). */
-export function listenerDelta(
+/** Compute the listeners added between two snapshots (after - before). */
+export const listenerDelta = (
   before: Map<MockEventBase, unknown[]>,
   after: Map<MockEventBase, unknown[]>
-): Map<MockEventBase, unknown[]> {
+): Map<MockEventBase, unknown[]> => {
   const delta = new Map<MockEventBase, unknown[]>();
   for (const [event, afterListeners] of after) {
     const beforeCount = before.get(event)?.length ?? 0;
     delta.set(event, afterListeners.slice(beforeCount));
   }
   return delta;
-}
+};
 
 /** Clear all listeners then restore only those in the given snapshot. */
-export function restoreListeners(snap: Map<MockEventBase, unknown[]>): void {
+export const restoreListeners = (snap: Map<MockEventBase, unknown[]>): void => {
   for (const group of Object.values(mockEvents)) {
     for (const event of Object.values(group) as MockEventBase[]) {
       event._listeners.length = 0;
@@ -238,11 +336,9 @@ export function restoreListeners(snap: Map<MockEventBase, unknown[]>): void {
   for (const [event, listeners] of snap) {
     event._listeners.push(...listeners);
   }
-}
+};
 
-let sessionStore: Record<string, unknown> = {};
-
-export function resetChromeMock() {
+export const resetChromeMock = (): void => {
   sessionStore = {};
   mockCalls.action.setBadgeText.length = 0;
   mockCalls.action.setBadgeBackgroundColor.length = 0;
@@ -261,125 +357,21 @@ export function resetChromeMock() {
   mockConfig.action.setIconRejectTimes = 0;
   mockConfig.tabs.sendMessageShouldReject = false;
   mockConfig.runtime.getContextsResult = [];
-}
-
-export const mockConfig = {
-  tabs: {
-    getResult: {
-      id: 1,
-      mutedInfo: { muted: false },
-    } as Partial<chrome.tabs.Tab>,
-    queryResult: [] as Partial<chrome.tabs.Tab>[],
-    sendMessageShouldReject: false,
-  },
-  action: {
-    setIconRejectTimes: 0,
-  },
-  runtime: {
-    getContextsResult: [] as Partial<chrome.runtime.ExtensionContext>[],
-  },
-};
-
-export const mockCalls = {
-  action: {
-    setBadgeText: [] as chrome.action.BadgeTextDetails[],
-    setBadgeBackgroundColor: [] as chrome.action.BadgeColorDetails[],
-    setIcon: [] as chrome.action.TabIconDetails[],
-  },
-  tabs: {
-    update: [] as [number, chrome.tabs.UpdateProperties][],
-    sendMessage: [] as [number, unknown][],
-    get: [] as number[],
-    query: [] as chrome.tabs.QueryInfo[],
-  },
-  runtime: {
-    sendMessage: [] as unknown[],
-    getContexts: [] as chrome.runtime.ContextFilter[],
-  },
-  contextMenus: {
-    create: [] as chrome.contextMenus.CreateProperties[],
-  },
-  offscreen: {
-    createDocument: [] as chrome.offscreen.CreateParameters[],
-  },
-};
-
-export const mockEvents = {
-  runtime: {
-    onInstalled:
-      createMockEvent<(details: chrome.runtime.InstalledDetails) => void>(),
-    onMessage:
-      createMockEvent<
-        (
-          message: unknown,
-          sender: chrome.runtime.MessageSender,
-          sendResponse: (r?: unknown) => void
-        ) => void
-      >(),
-  },
-  action: {
-    onClicked: createMockEvent<(tab: chrome.tabs.Tab) => void>(),
-  },
-  commands: {
-    onCommand: createMockEvent<(command: string) => void>(),
-  },
-  contextMenus: {
-    onClicked:
-      createMockEvent<
-        (info: chrome.contextMenus.OnClickData, tab?: chrome.tabs.Tab) => void
-      >(),
-  },
-  tabs: {
-    onActivated:
-      createMockEvent<
-        (activeInfo: { tabId: number; windowId: number }) => void
-      >(),
-    onUpdated:
-      createMockEvent<
-        (
-          tabId: number,
-          changeInfo: { status?: string; url?: string },
-          tab: chrome.tabs.Tab
-        ) => void
-      >(),
-    onRemoved:
-      createMockEvent<
-        (
-          tabId: number,
-          removeInfo: { windowId: number; isWindowClosing: boolean }
-        ) => void
-      >(),
-  },
 };
 
 const chromeMock = {
-  runtime: {
-    onInstalled: mockEvents.runtime.onInstalled,
-    onMessage: mockEvents.runtime.onMessage,
-    getContexts: (filter: chrome.runtime.ContextFilter) => {
-      mockCalls.runtime.getContexts.push(filter);
-      return Promise.resolve(mockConfig.runtime.getContextsResult);
-    },
-    sendMessage: (message: unknown) => {
-      mockCalls.runtime.sendMessage.push(message);
-      return Promise.resolve();
-    },
-    ContextType: {
-      OFFSCREEN_DOCUMENT: "OFFSCREEN_DOCUMENT",
-    },
-  },
   action: {
     onClicked: mockEvents.action.onClicked,
-    setBadgeText: (details: chrome.action.BadgeTextDetails) => {
-      mockCalls.action.setBadgeText.push(details);
-    },
     setBadgeBackgroundColor: (details: chrome.action.BadgeColorDetails) => {
       mockCalls.action.setBadgeBackgroundColor.push(details);
+    },
+    setBadgeText: (details: chrome.action.BadgeTextDetails) => {
+      mockCalls.action.setBadgeText.push(details);
     },
     setIcon: (details: chrome.action.TabIconDetails) => {
       mockCalls.action.setIcon.push(details);
       if (mockConfig.action.setIconRejectTimes > 0) {
-        mockConfig.action.setIconRejectTimes--;
+        mockConfig.action.setIconRejectTimes -= 1;
         return Promise.reject(new Error("setIcon failed"));
       }
       return Promise.resolve();
@@ -389,32 +381,32 @@ const chromeMock = {
     onCommand: mockEvents.commands.onCommand,
   },
   contextMenus: {
-    onClicked: mockEvents.contextMenus.onClicked,
     create: (properties: chrome.contextMenus.CreateProperties) => {
       mockCalls.contextMenus.create.push(properties);
     },
+    onClicked: mockEvents.contextMenus.onClicked,
   },
-  tabs: {
-    onActivated: mockEvents.tabs.onActivated,
-    onUpdated: mockEvents.tabs.onUpdated,
-    onRemoved: mockEvents.tabs.onRemoved,
-    get: (tabId: number) => {
-      mockCalls.tabs.get.push(tabId);
-      return Promise.resolve(mockConfig.tabs.getResult as chrome.tabs.Tab);
+  offscreen: {
+    Reason: {
+      MATCH_MEDIA: "MATCH_MEDIA",
     },
-    update: (tabId: number, props: chrome.tabs.UpdateProperties) => {
-      mockCalls.tabs.update.push([tabId, props]);
-      return Promise.resolve(mockConfig.tabs.getResult as chrome.tabs.Tab);
+    createDocument: (params: chrome.offscreen.CreateParameters) => {
+      mockCalls.offscreen.createDocument.push(params);
+      return Promise.resolve();
     },
-    query: (queryInfo: chrome.tabs.QueryInfo) => {
-      mockCalls.tabs.query.push(queryInfo);
-      return Promise.resolve(mockConfig.tabs.queryResult as chrome.tabs.Tab[]);
+  },
+  runtime: {
+    ContextType: {
+      OFFSCREEN_DOCUMENT: "OFFSCREEN_DOCUMENT",
     },
-    sendMessage: (tabId: number, message: unknown) => {
-      mockCalls.tabs.sendMessage.push([tabId, message]);
-      if (mockConfig.tabs.sendMessageShouldReject) {
-        return Promise.reject(new Error("sendMessage failed"));
-      }
+    getContexts: (filter: chrome.runtime.ContextFilter) => {
+      mockCalls.runtime.getContexts.push(filter);
+      return Promise.resolve(mockConfig.runtime.getContextsResult);
+    },
+    onInstalled: mockEvents.runtime.onInstalled,
+    onMessage: mockEvents.runtime.onMessage,
+    sendMessage: (message: unknown) => {
+      mockCalls.runtime.sendMessage.push(message);
       return Promise.resolve();
     },
   },
@@ -448,13 +440,28 @@ const chromeMock = {
       },
     },
   },
-  offscreen: {
-    createDocument: (params: chrome.offscreen.CreateParameters) => {
-      mockCalls.offscreen.createDocument.push(params);
+  tabs: {
+    get: (tabId: number) => {
+      mockCalls.tabs.get.push(tabId);
+      return Promise.resolve(mockConfig.tabs.getResult as chrome.tabs.Tab);
+    },
+    onActivated: mockEvents.tabs.onActivated,
+    onRemoved: mockEvents.tabs.onRemoved,
+    onUpdated: mockEvents.tabs.onUpdated,
+    query: (queryInfo: chrome.tabs.QueryInfo) => {
+      mockCalls.tabs.query.push(queryInfo);
+      return Promise.resolve(mockConfig.tabs.queryResult as chrome.tabs.Tab[]);
+    },
+    sendMessage: (tabId: number, message: unknown) => {
+      mockCalls.tabs.sendMessage.push([tabId, message]);
+      if (mockConfig.tabs.sendMessageShouldReject) {
+        return Promise.reject(new Error("sendMessage failed"));
+      }
       return Promise.resolve();
     },
-    Reason: {
-      MATCH_MEDIA: "MATCH_MEDIA",
+    update: (tabId: number, props: chrome.tabs.UpdateProperties) => {
+      mockCalls.tabs.update.push([tabId, props]);
+      return Promise.resolve(mockConfig.tabs.getResult as chrome.tabs.Tab);
     },
   },
 };

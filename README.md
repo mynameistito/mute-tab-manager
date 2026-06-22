@@ -12,7 +12,7 @@ directly setting `HTMLVideoElement.muted` via a content script.
 - **Mute any tab** — click the toolbar icon or press `Alt+Shift+M`
 - **YouTube support** — mutes `<video>` elements directly, surviving SPA
   navigation and reloads
-- **Mute all tabs** — right-click the toolbar icon → *Mute All Tabs*
+- **Mute all tabs** — right-click the toolbar icon → _Mute All Tabs_
 - **Visual badge** — "M" appears on the icon when a tab is muted
 - **Dark-mode aware** — icon adapts to system theme (offscreen document on
   Chrome, native `matchMedia` on Firefox)
@@ -23,16 +23,16 @@ directly setting `HTMLVideoElement.muted` via a content script.
 
 ## Tech stack
 
-| Concern | Tool |
-|---|---|
-| Extension framework | [WXT](https://wxt.dev) |
-| Package manager | [Bun](https://bun.sh) |
-| Build/script runtime | [Node](https://nodejs.org) (via `--experimental-strip-types`) |
-| Language | TypeScript (strict) |
-| Lint + format | [Ultracite](https://github.com/haydenbleasel/ultracite) (Biome) |
-| Versioning | [Changesets](https://github.com/changesets/changesets) |
-| Hooks | [Lefthook](https://lefthook.dev) |
-| Tests | `bun test` + [happy-dom](https://github.com/capricorn86/happy-dom) |
+| Concern              | Tool                                                               |
+| -------------------- | ------------------------------------------------------------------ |
+| Extension framework  | [WXT](https://wxt.dev)                                             |
+| Package manager      | [Bun](https://bun.sh)                                              |
+| Build/script runtime | [Node](https://nodejs.org) (via `--experimental-strip-types`)      |
+| Language             | TypeScript (strict)                                                |
+| Lint + format        | [Ultracite](https://github.com/haydenbleasel/ultracite) (Biome)    |
+| Versioning           | [Changesets](https://github.com/changesets/changesets)             |
+| Hooks                | [Lefthook](https://lefthook.dev)                                   |
+| Tests                | `bun test` + [happy-dom](https://github.com/capricorn86/happy-dom) |
 
 ## Quick start
 
@@ -48,10 +48,12 @@ bun run zip                    # zipped artefacts ready for store submission
 ### Loading the built extension
 
 **Chrome** (`.output/chrome-mv3/`):
+
 1. `chrome://extensions` → enable **Developer mode**
 2. **Load unpacked** → select `.output/chrome-mv3/`
 
 **Firefox** (`.output/firefox-mv3/`):
+
 1. `about:debugging` → **This Firefox**
 2. **Load Temporary Add-on…** → select `.output/firefox-mv3/manifest.json`
 
@@ -97,32 +99,32 @@ mute-tab-manager/
 
 ## Commands
 
-| Command | Purpose |
-|---|---|
-| `bun run dev` | WXT dev with HMR (Chrome) |
-| `bun run dev:firefox` | WXT dev (Firefox) |
-| `bun run build` | Production build (both browsers) |
-| `bun run zip` | Build + zip both browsers |
-| `bun run typecheck` | TypeScript check |
-| `bun run check` | Ultracite lint + format check |
-| `bun run fix` | Ultracite auto-fix |
-| `bun run test` | Run Bun test suite |
-| `bun run test:coverage` | Coverage (lcov + text) |
-| `bun run generate-key` | (Re-)derive Chrome `key` + extension ID |
-| `bun run generate-icons` | Re-rasterise SVG → PNG icons |
-| `bun run changeset` | Add a changeset |
-| `bun run release` | Build + publish GitHub release |
+| Command                  | Purpose                                 |
+| ------------------------ | --------------------------------------- |
+| `bun run dev`            | WXT dev with HMR (Chrome)               |
+| `bun run dev:firefox`    | WXT dev (Firefox)                       |
+| `bun run build`          | Production build (both browsers)        |
+| `bun run zip`            | Build + zip both browsers               |
+| `bun run typecheck`      | TypeScript check                        |
+| `bun run check`          | Ultracite lint + format check           |
+| `bun run fix`            | Ultracite auto-fix                      |
+| `bun run test`           | Run Bun test suite                      |
+| `bun run test:coverage`  | Coverage (lcov + text)                  |
+| `bun run generate-key`   | (Re-)derive Chrome `key` + extension ID |
+| `bun run generate-icons` | Re-rasterise SVG → PNG icons            |
+| `bun run changeset`      | Add a changeset                         |
+| `bun run release`        | Build + publish GitHub release          |
 
 ## Permissions
 
-| Permission | Chrome | Firefox | Reason |
-|---|:---:|:---:|---|
-| `tabs` | ✓ | ✓ | Query and mute open tabs |
-| `activeTab` | ✓ | ✓ | Access the active tab |
-| `contextMenus` | ✓ | ✓ | Right-click toolbar menu |
-| `offscreen` | ✓ | — | Dark-mode detection (Chrome) |
-| `storage` | ✓ | ✓ | Persist muted state |
-| `*://*.youtube.com/*` | ✓ | ✓ | Content script |
+| Permission            | Chrome | Firefox | Reason                       |
+| --------------------- | :----: | :-----: | ---------------------------- |
+| `tabs`                |   ✓    |    ✓    | Query and mute open tabs     |
+| `activeTab`           |   ✓    |    ✓    | Access the active tab        |
+| `contextMenus`        |   ✓    |    ✓    | Right-click toolbar menu     |
+| `offscreen`           |   ✓    |    —    | Dark-mode detection (Chrome) |
+| `storage`             |   ✓    |    ✓    | Persist muted state          |
+| `*://*.youtube.com/*` |   ✓    |    ✓    | Content script               |
 
 ## License
 
