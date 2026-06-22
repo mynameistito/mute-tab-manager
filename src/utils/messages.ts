@@ -1,14 +1,14 @@
-export interface SetMutedMessage {
+interface SetMutedMessage {
   readonly muted: boolean;
   readonly type: "SET_MUTED";
 }
 
-export interface DarkModeResponseMessage {
+interface DarkModeResponseMessage {
   readonly isDark: boolean;
   readonly type: "DARK_MODE_RESPONSE";
 }
 
-export interface GetDarkModeMessage {
+interface GetDarkModeMessage {
   readonly type: "GET_DARK_MODE";
 }
 
