@@ -38,7 +38,7 @@ directly setting `HTMLVideoElement.muted` via a content script.
 
 ```bash
 bun install                    # installs deps and runs `wxt prepare`
-bun run generate-key           # generates key.pem + extension-key.json (first run)
+bun run generate-key           # generates key.pem (first run)
 bun run generate-key --force   # overwrites key.pem and rotates the extension ID
 bun run dev                    # Chrome dev mode with HMR
 bun run dev:firefox            # Firefox dev mode
@@ -60,16 +60,15 @@ bun run zip                    # zipped artefacts ready for store submission
 
 ## Persistent Chrome extension ID
 
-`scripts/generate-key.ts` creates a 2048-bit RSA private key (`key.pem`)
-and writes the derived SPKI public key + deterministic extension ID into
-`extension-key.json`. `wxt.config.ts` reads that file and injects the
-public key into the Chrome manifest's `key` field so the extension always
-loads under the same ID — regardless of machine or unpack location.
+`scripts/generate-key.ts` creates a 2048-bit RSA private key (`key.pem`).
+`wxt.config.ts` reads either the `WXT_CHROME_KEY` environment variable or
+local `key.pem`, derives the SPKI public key, and injects it into the Chrome
+manifest's `key` field so the extension always loads under the same ID.
 
 - `key.pem` is **gitignored** (private). Keep it safe; reuse it via the
   `WXT_CHROME_KEY` GitHub Actions secret in `release.yml`.
-- `extension-key.json` **is committed** — it only contains the public key
-  and the derived ID, both safe to share.
+- If neither `WXT_CHROME_KEY` nor `key.pem` exists, WXT omits `manifest.key`
+  so dependency installs and throwaway local builds still work.
 
 Lost the key? Run `bun run generate-key --force`. The extension ID will change,
 so anyone with the old ID installed will see it as a different extension.

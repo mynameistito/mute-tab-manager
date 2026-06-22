@@ -1,38 +1,36 @@
-import { readFileSync } from "node:fs";
+import { createPublicKey } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import { defineConfig } from "wxt";
 
-const here = import.meta.dirname;
-const keyJsonPath = path.resolve(here, "extension-key.json");
-
-interface ExtensionKeyJson {
-  readonly extensionId: string;
-  readonly generatedAt: string;
-  readonly manifestKey: string;
-}
-
-const loadExtensionKey = (): ExtensionKeyJson => {
-  try {
-    const data = JSON.parse(readFileSync(keyJsonPath, "utf-8"));
-    if (
-      typeof data !== "object" ||
-      data === null ||
-      typeof (data as Record<string, unknown>).extensionId !== "string" ||
-      typeof (data as Record<string, unknown>).manifestKey !== "string"
-    ) {
-      throw new Error(
-        "Invalid extension-key.json: missing required fields (extensionId, manifestKey)"
-      );
-    }
-    return data as ExtensionKeyJson;
-  } catch (error) {
-    const err = error as Error;
-    throw new Error(
-      `Failed to load extension key from ${keyJsonPath}: ${err.message}`,
-      { cause: error }
-    );
+const loadPemSource = (): string | undefined => {
+  const fromEnv = process.env.WXT_CHROME_KEY;
+  if (fromEnv && fromEnv.length > 0) {
+    return fromEnv;
   }
+
+  const keyPath = path.resolve("key.pem");
+  if (existsSync(keyPath)) {
+    return readFileSync(keyPath, "utf-8");
+  }
+};
+
+const loadManifestKey = (): string | undefined => {
+  const pem = loadPemSource();
+  if (!pem) {
+    return;
+  }
+
+  const spkiPem = createPublicKey(pem).export({
+    format: "pem",
+    type: "spki",
+  }) as string;
+
+  return spkiPem
+    .replaceAll("-----BEGIN PUBLIC KEY-----", "")
+    .replaceAll("-----END PUBLIC KEY-----", "")
+    .replaceAll(/\s+/gu, "");
 };
 
 export default defineConfig({
@@ -76,11 +74,10 @@ export default defineConfig({
       };
     }
 
-    // Chrome / Chromium
-    const extensionKey = loadExtensionKey();
+    const key = loadManifestKey();
     return {
       ...base,
-      key: extensionKey.manifestKey,
+      ...(key ? { key } : {}),
       permissions: [...base.permissions, "offscreen"],
     };
   },

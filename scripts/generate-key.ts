@@ -70,6 +70,8 @@ const secretCommand =
 
 console.log(`\n✔ Generated ${KEY_PATH}\n`);
 console.log(`Extension ID: ${extensionId}\n`);
+console.log("manifest.key (SPKI public, base64):");
+console.log(spkiB64);
 console.log(
   "\nTo register the key with GitHub Actions (requires gh CLI logged in):\n"
 );
