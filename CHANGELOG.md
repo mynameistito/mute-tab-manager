@@ -1,5 +1,11 @@
 # mute-tab-manager
 
+## 1.0.2
+
+### Patch Changes
+
+- a8b16fc: Fix extension manifest metadata so builds use the Mute Tab Manager name and description.
+
 ## 1.0.1
 
 ### Major Changes
