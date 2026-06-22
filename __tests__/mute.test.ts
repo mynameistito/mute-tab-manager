@@ -1,17 +1,17 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
 import {
+  mockCalls,
+  mockConfig,
+  resetChromeMock,
+} from "@/tests/helpers/chrome-mock.ts";
+import {
   muteAllTabs,
   sendMuteToContentScript,
   toggleMuteActiveTab,
   toggleMuteTab,
-} from "../src/utils/mute.ts";
-import { getMutedTabs, isTabMuted } from "../src/utils/storage.ts";
-import {
-  mockCalls,
-  mockConfig,
-  resetChromeMock,
-} from "./helpers/chrome-mock.ts";
+} from "@/utils/mute.ts";
+import { getMutedTabs, isTabMuted } from "@/utils/storage.ts";
 
 beforeEach(() => {
   resetChromeMock();

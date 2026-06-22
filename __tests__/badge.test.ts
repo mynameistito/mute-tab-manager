@@ -1,17 +1,17 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 
-import { updateBadgeAndIcon } from "../src/utils/badge.ts";
+import {
+  mockCalls,
+  mockConfig,
+  resetChromeMock,
+} from "@/tests/helpers/chrome-mock.ts";
+import { updateBadgeAndIcon } from "@/utils/badge.ts";
 import {
   BADGE_COLOR_MUTED,
   BADGE_COLOR_UNMUTED,
   BADGE_MUTED,
   BADGE_UNMUTED,
-} from "../src/utils/constants.ts";
-import {
-  mockCalls,
-  mockConfig,
-  resetChromeMock,
-} from "./helpers/chrome-mock.ts";
+} from "@/utils/constants.ts";
 
 beforeEach(() => {
   resetChromeMock();

@@ -1,17 +1,17 @@
-import { updateBadgeAndIcon } from "../utils/badge.ts";
+import { updateBadgeAndIcon } from "@/utils/badge.ts";
 import {
   COMMAND_TOGGLE_MUTE,
   CONTEXT_MENU_MUTE_ALL,
   CONTEXT_MENU_TOGGLE_ID,
   STORAGE_KEY_DARK_MODE,
-} from "../utils/constants.ts";
-import type { InboundServiceWorkerMessage } from "../utils/messages.ts";
+} from "@/utils/constants.ts";
+import type { InboundServiceWorkerMessage } from "@/utils/messages.ts";
 import {
   muteAllTabs,
   sendMuteToContentScript,
   toggleMuteActiveTab,
-} from "../utils/mute.ts";
-import { isTabMuted, removeTabFromStorage } from "../utils/storage.ts";
+} from "@/utils/mute.ts";
+import { isTabMuted, removeTabFromStorage } from "@/utils/storage.ts";
 
 const OFFSCREEN_DOCUMENT_PATH = "offscreen.html" as const;
 

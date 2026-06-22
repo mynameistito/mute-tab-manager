@@ -6,6 +6,11 @@
     "module": "Preserve",
     "moduleDetection": "force",
     "moduleResolution": "bundler",
+    "paths": {
+      "@": ["./src"],
+      "@/*": ["./src/*"],
+      "@/tests/*": ["./__tests__/*"]
+    },
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
